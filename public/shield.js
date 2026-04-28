@@ -93,7 +93,8 @@
     'crazygames.com',
     'games.crazygames.com',
     '1001juegos.com',
-    'gamescraft.com'
+    'gamescraft.com',
+    'https://skybricks-one.vercel.app/'
   ];
 
   function _checkDomain() {
