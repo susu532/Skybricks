@@ -38,7 +38,22 @@ export default function App() {
         }
       }
     }, 500);
-    return () => clearInterval(interval);
+
+    const handleResize = () => {
+      const isWindowMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+        window.innerWidth < 768 || 
+        (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
+      useStore.getState().setIsMobile(isWindowMobile);
+    };
+
+    window.addEventListener('resize', handleResize);
+    // Initial check
+    handleResize();
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   const handleStart = () => {

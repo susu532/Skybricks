@@ -171,6 +171,7 @@ interface AppState {
   resetToHouse: () => void;
   undo: () => void;
   redo: () => void;
+  setIsMobile: (isMobile: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -344,6 +345,7 @@ export const useStore = create<AppState>()(
       redoStack: newRedoStack
     };
   }),
+  setIsMobile: (isMobile) => set({ isMobile }),
 };},
     {
       name: 'block-builder-storage',
