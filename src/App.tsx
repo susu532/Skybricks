@@ -10,16 +10,14 @@ import { UI } from './components/UI';
 import { setMuted } from './audio';
 import { Play } from 'lucide-react';
 import { useStore } from './store';
-import { getIntegrityToken } from './utils/security';
 
 export default function App() {
-  const _it = getIntegrityToken();
   const [started, setStarted] = useState(false);
   const { performanceMode } = useStore();
 
   useEffect(() => {
     // Wait for the SDK to load and register the audio listener
-    let interval = setInterval(() => {
+    let interval = setInterval(async () => {
       const cg = (window as any).CrazyGames;
       if (cg && cg.SDK) {
         clearInterval(interval);
@@ -27,7 +25,7 @@ export default function App() {
         try {
           // Init for SDK v3
           if (typeof cg.SDK.init === 'function') {
-             cg.SDK.init().catch(() => {});
+             await cg.SDK.init().catch(() => {});
           }
 
           if (cg.SDK.game && typeof cg.SDK.game.addAudioListener === 'function') {
@@ -55,15 +53,16 @@ export default function App() {
 
   if (!started) {
     return (
-      <div className="relative w-screen h-screen bg-slate-900 flex flex-col items-center justify-center font-sans select-none text-white">
-        <h1 className="text-6xl font-bold mb-8 tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-violet-500">
-          SkyBricks
+      <div className="relative w-screen h-screen bg-white flex flex-col items-center justify-center font-sans select-none overflow-hidden">
+        <h1 className="text-[min(15vw,8rem)] sm:text-8xl md:text-9xl font-black mb-8 sm:mb-12 tracking-tighter flex items-center justify-center" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+          <span className="text-[#5FA6FF]">Sky</span>
+          <span className="text-[#FA31A7]">Bricks</span>
         </h1>
         <button 
           onClick={handleStart}
-          className="group relative flex items-center gap-3 px-8 py-4 bg-white text-slate-900 rounded-full font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-pink-500/20"
+          className="group relative flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-full font-bold text-xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-900/10"
         >
-          <Play className="w-6 h-6 fill-slate-900 group-hover:scale-110 transition-transform" />
+          <Play className="w-6 h-6 fill-white group-hover:scale-110 transition-transform" />
           Play Now
         </button>
       </div>

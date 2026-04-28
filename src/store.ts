@@ -1,19 +1,16 @@
 import { create } from 'zustand';
 import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
-import { getIntegrityToken } from './utils/security';
-
-// Validate runtime integrity
-const _it = getIntegrityToken();
 
 const crazyGamesStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
     if (typeof window !== 'undefined' && (window as any).CrazyGames?.SDK) {
       try {
         const sdk = (window as any).CrazyGames.SDK;
+        let isInitialized = true;
         if (typeof sdk.init === 'function') {
-            try { await sdk.init(); } catch (e) {}
+            try { await sdk.init(); } catch (e) { isInitialized = false; }
         }
-        if (sdk.data) {
+        if (isInitialized && sdk.data) {
           const item = await sdk.data.getItem(name);
           // Only return if truthy string, to let Zustand handle it, else fallback to localstorage logic
           if (item) return item;
@@ -28,10 +25,11 @@ const crazyGamesStorage: StateStorage = {
     if (typeof window !== 'undefined' && (window as any).CrazyGames?.SDK) {
       try {
         const sdk = (window as any).CrazyGames.SDK;
+        let isInitialized = true;
         if (typeof sdk.init === 'function') {
-            try { await sdk.init(); } catch (e) {}
+            try { await sdk.init(); } catch (e) { isInitialized = false; }
         }
-        if (sdk.data) {
+        if (isInitialized && sdk.data) {
           await sdk.data.setItem(name, value);
         }
       } catch (e) {
@@ -45,10 +43,11 @@ const crazyGamesStorage: StateStorage = {
     if (typeof window !== 'undefined' && (window as any).CrazyGames?.SDK) {
       try {
         const sdk = (window as any).CrazyGames.SDK;
+        let isInitialized = true;
         if (typeof sdk.init === 'function') {
-            try { await sdk.init(); } catch (e) {}
+            try { await sdk.init(); } catch (e) { isInitialized = false; }
         }
-        if (sdk.data) {
+        if (isInitialized && sdk.data) {
           await sdk.data.removeItem(name);
         }
       } catch (e) {
@@ -339,9 +338,9 @@ export const useStore = create<AppState>()(
   }),
 };},
     {
-      name: 'block-builder-storage-' + _it,
+      name: 'block-builder-storage',
       storage: createJSONStorage(() => crazyGamesStorage),
-      partialize: (state) => ({ blocks: state.blocks, furnitureUnlocked: state.furnitureUnlocked }),
+      partialize: (state) => ({ blocks: state.blocks }),
     }
   )
 );

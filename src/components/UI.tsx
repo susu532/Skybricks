@@ -116,12 +116,12 @@ const TYPES: { type: BlockType; label: string }[] = [
 ];
 
 function isFurniture(type: BlockType): boolean {
-  const d = BLOCK_DIMENSIONS[type];
+  const d = BLOCK_DIMENSIONS[type] || { w: 1, d: 1 };
   return !!d.shape && d.shape !== 'brick' && d.shape !== 'cylinder';
 }
 
 function ModelIcon({ type, selected }: { type: BlockType, selected: boolean }) {
-  const d = BLOCK_DIMENSIONS[type];
+  const d = BLOCK_DIMENSIONS[type] || { w: 1, d: 1 };
   const isPlate = d.isPlate || false;
   const w = d.w;
   const depth = d.d;
@@ -430,8 +430,8 @@ export function UI() {
       <div className={`flex flex-col h-full justify-between transition-transform duration-300 z-50 relative ${(hasPointerLock && !isMobile) ? '-translate-y-full opacity-0 pointer-events-none' : ''}`}>
         <div className="flex justify-between items-start p-2 sm:p-6 pointer-events-none">
             {/* Title */}
-            <div className="font-extrabold text-3xl sm:text-4xl tracking-tighter drop-shadow-md flex items-center">
-                <span className="text-blue-400">Sky</span><span className="text-pink-500">Bricks</span>
+            <div className="font-black text-3xl sm:text-4xl tracking-tighter drop-shadow-md flex items-center" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+                <span className="text-[#5FA6FF]">Sky</span><span className="text-[#FA31A7]">Bricks</span>
             </div>
             {/* Right Corner Buttons */}
             <div className="flex flex-col gap-2 sm:gap-3 items-end pointer-events-auto">

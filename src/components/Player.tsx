@@ -27,7 +27,7 @@ export function Player({ rotation }: { rotation: number }) {
   
   const { selectedType, selectedColor, addBlock, removeBlock } = useStore();
   
-  const dims = BLOCK_DIMENSIONS[selectedType];
+  const dims = BLOCK_DIMENSIONS[selectedType] || { w: 1, d: 1, shape: 'brick' as const };
   const height = getBlockHeight(dims.shape, dims.isPlate);
 
   const getNearbyBlocks = (point: THREE.Vector3) => {
@@ -52,7 +52,7 @@ export function Player({ rotation }: { rotation: number }) {
       const epsilon = 0.05;
 
       return !nearbyBlocks.some((b) => {
-          const d2 = BLOCK_DIMENSIONS[b.type as BlockType];
+          const d2 = BLOCK_DIMENSIONS[b.type as BlockType] || { w: 1, d: 1, shape: 'brick' as const };
           const h2 = getBlockHeight(d2.shape, d2.isPlate);
           const isRot = Math.abs(b.rotation[1] % Math.PI) > 0.1;
           const b2_w = isRot ? d2.d : d2.w;
@@ -94,7 +94,7 @@ export function Player({ rotation }: { rotation: number }) {
       const epsilon = 0.1; // Small margin for contact detection
 
       return nearbyBlocks.some((b) => {
-          const d2 = BLOCK_DIMENSIONS[b.type as BlockType];
+          const d2 = BLOCK_DIMENSIONS[b.type as BlockType] || { w: 1, d: 1, shape: 'brick' as const };
           const h2 = getBlockHeight(d2.shape, d2.isPlate);
           const isRot = Math.abs(b.rotation[1] % Math.PI) > 0.1;
           const b2_w = isRot ? d2.d : d2.w;

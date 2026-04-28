@@ -63,7 +63,7 @@ export function Scene() {
           </RigidBody>
 
           {blocks.map((b) => {
-            const d = BLOCK_DIMENSIONS[b.type];
+            const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
             return (
               <Brick
                 key={b.id}
