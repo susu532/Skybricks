@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
+import { getIntegrityToken } from './utils/security';
+
+// Validate runtime integrity
+const _it = getIntegrityToken();
 
 const crazyGamesStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
@@ -335,7 +339,7 @@ export const useStore = create<AppState>()(
   }),
 };},
     {
-      name: 'block-builder-storage',
+      name: 'block-builder-storage-' + _it,
       storage: createJSONStorage(() => crazyGamesStorage),
       partialize: (state) => ({ blocks: state.blocks, furnitureUnlocked: state.furnitureUnlocked }),
     }

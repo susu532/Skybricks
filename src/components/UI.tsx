@@ -219,7 +219,9 @@ export function UI() {
     undo,
     redo,
     setBlocks,
-    isMobile
+    isMobile,
+    furnitureUnlocked,
+    unlockFurniture
   } = useStore();
 
   const [hasPointerLock, setHasPointerLock] = useState(false);
@@ -368,42 +370,36 @@ export function UI() {
     reader.readAsText(file);
   }, [setBlocks]);
 
-  const handleTypeSelect = (type: BlockType) => {
-    if (isFurniture(type) && !useStore.getState().furnitureUnlocked) {
-        if (confirm('Watch a short ad to unlock all furniture?')) {
-            try {
-                const cg = (window as any).CrazyGames;
-                if (cg && cg.SDK && cg.SDK.ad && cg.SDK.ad.requestAd) {
-                    const callbacks = {
-                        adStarted: () => console.log('Ad started'),
-                        adFinished: () => {
-                            console.log('Ad finished');
-                            useStore.getState().unlockFurniture();
-                            setType(type);
-                            playSelectSound();
-                        },
-                        adError: (error: any) => {
-                            console.error('Ad error', error);
-                            // Fallback in case of ad error (e.g. no fill)
-                            useStore.getState().unlockFurniture();
-                            setType(type);
-                            playSelectSound();
-                        }
-                    };
-                    cg.SDK.ad.requestAd('rewarded', callbacks);
-                } else {
-                    // SDK not available, unlock immediately
-                    useStore.getState().unlockFurniture();
-                    setType(type);
+  const handleUnlockFurniture = () => {
+    try {
+        const cg = (window as any).CrazyGames;
+        if (cg && cg.SDK && cg.SDK.ad && cg.SDK.ad.requestAd) {
+            const callbacks = {
+                adStarted: () => console.log('Ad started'),
+                adFinished: () => {
+                    console.log('Ad finished');
+                    unlockFurniture();
+                    playSelectSound();
+                },
+                adError: (error: any) => {
+                    console.error('Ad error', error);
+                    unlockFurniture();
                     playSelectSound();
                 }
-            } catch (e) {
-                // Ignore any SDK script errors and unlock immediately
-                useStore.getState().unlockFurniture();
-                setType(type);
-                playSelectSound();
-            }
+            };
+            cg.SDK.ad.requestAd('rewarded', callbacks);
+        } else {
+            unlockFurniture();
+            playSelectSound();
         }
+    } catch (e) {
+        unlockFurniture();
+        playSelectSound();
+    }
+  };
+
+  const handleTypeSelect = (type: BlockType) => {
+    if (isFurniture(type) && !furnitureUnlocked) {
         return;
     }
     setType(type);
@@ -439,6 +435,18 @@ export function UI() {
             </div>
             {/* Right Corner Buttons */}
             <div className="flex flex-col gap-2 sm:gap-3 items-end pointer-events-auto">
+                {!furnitureUnlocked && (
+                    <button 
+                        onClick={handleUnlockFurniture}
+                        className="group relative flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
+                    >
+                        <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-white shadow-sm" />
+                        <span className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1 text-shadow-sm">
+                            Unlock Furniture
+                        </span>
+                    </button>
+                )}
                 <div className="flex gap-1 sm:gap-2 flex-wrap justify-end max-w-[120px] sm:max-w-none">
                     <button 
                         onClick={() => { togglePerformanceMode(); playSelectSound(); }} 

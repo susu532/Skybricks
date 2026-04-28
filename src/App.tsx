@@ -10,8 +10,10 @@ import { UI } from './components/UI';
 import { setMuted } from './audio';
 import { Play } from 'lucide-react';
 import { useStore } from './store';
+import { getIntegrityToken } from './utils/security';
 
 export default function App() {
+  const _it = getIntegrityToken();
   const [started, setStarted] = useState(false);
   const { performanceMode } = useStore();
 
