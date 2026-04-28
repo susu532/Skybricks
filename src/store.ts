@@ -290,8 +290,16 @@ export const useStore = create<AppState>()(
   redoStack: [],
   selectedColor: '#FFD1DC',
   selectedType: '2x4',
-  isMobile: typeof window !== 'undefined' ? /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768 : false,
-  performanceMode: typeof window !== 'undefined' ? /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768 : false,
+  isMobile: typeof window !== 'undefined' ? 
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+    window.innerWidth < 768 || 
+    (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+    : false,
+  performanceMode: typeof window !== 'undefined' ? 
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+    window.innerWidth < 768 || 
+    (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)
+    : false,
   furnitureUnlocked: false,
   addBlock: (block) => set((state) => ({ 
     history: [...state.history, state.blocks], 

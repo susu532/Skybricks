@@ -1,4 +1,4 @@
-import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock } from 'lucide-react';
+import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2 } from 'lucide-react';
 import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
@@ -553,7 +553,7 @@ export function UI() {
       </div>
 
       {/* Shortcuts Reminder */}
-      <div className={`absolute bottom-6 right-6 p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-xl transition-opacity duration-300 z-40 hidden md:block ${hasPointerLock ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
+      <div className={`absolute bottom-6 right-6 p-4 rounded-2xl bg-white/70 backdrop-blur-md border border-white/50 shadow-xl transition-opacity duration-300 z-40 hidden md:block ${isMobile ? '!hidden' : ''} ${hasPointerLock ? 'opacity-20 hover:opacity-100' : 'opacity-100'}`}>
         <div className="flex flex-col gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
           <div className="flex justify-between gap-8">
             <span>Place</span>
@@ -587,7 +587,7 @@ export function UI() {
       </div>
 
       {/* Mobile Controls Overlay */}
-      <div className="absolute inset-x-0 bottom-32 sm:bottom-32 z-40 md:hidden flex justify-between px-4 sm:px-6 pointer-events-none">
+      <div className={`absolute inset-x-0 bottom-32 sm:bottom-32 z-40 flex justify-between px-4 sm:px-6 pointer-events-none transition-opacity ${!isMobile ? 'hidden' : ''}`}>
           {/* Movement D-pad */}
           <div className="pointer-events-auto grid grid-cols-3 gap-1.5 sm:gap-2 w-36 h-36 sm:w-40 sm:h-40 opacity-70">
               <div />
@@ -654,6 +654,12 @@ export function UI() {
                       onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
                       className="w-14 h-14 sm:w-16 sm:h-16 bg-white/80 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md opacity-80 touch-none">
                       <RotateCcw className="w-6 h-6 sm:w-7 sm:h-7 text-slate-700" />
+                  </button>
+                  <button 
+                      onContextMenu={(e) => e.preventDefault()}
+                      onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
+                      className="w-14 h-14 sm:w-16 sm:h-16 bg-rose-400/90 rounded-full flex items-center justify-center active:bg-rose-500 shadow-md text-white opacity-90 touch-none">
+                      <Trash2 className="w-6 h-6 sm:w-7 sm:h-7" />
                   </button>
               </div>
               <div className="flex gap-2">
