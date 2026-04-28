@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    @apply h-full w-full overflow-hidden;
+  }
+}
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
