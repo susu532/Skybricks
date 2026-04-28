@@ -1,5 +1,59 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, StateStorage, createJSONStorage } from 'zustand/middleware';
+
+const crazyGamesStorage: StateStorage = {
+  getItem: async (name: string): Promise<string | null> => {
+    if (typeof window !== 'undefined' && (window as any).CrazyGames?.SDK) {
+      try {
+        const sdk = (window as any).CrazyGames.SDK;
+        if (typeof sdk.init === 'function') {
+            try { await sdk.init(); } catch (e) {}
+        }
+        if (sdk.data) {
+          const item = await sdk.data.getItem(name);
+          // Only return if truthy string, to let Zustand handle it, else fallback to localstorage logic
+          if (item) return item;
+        }
+      } catch (e) {
+        console.warn('CrazyGames SDK getItem failed', e);
+      }
+    }
+    return localStorage.getItem(name);
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    if (typeof window !== 'undefined' && (window as any).CrazyGames?.SDK) {
+      try {
+        const sdk = (window as any).CrazyGames.SDK;
+        if (typeof sdk.init === 'function') {
+            try { await sdk.init(); } catch (e) {}
+        }
+        if (sdk.data) {
+          await sdk.data.setItem(name, value);
+        }
+      } catch (e) {
+        console.warn('CrazyGames SDK setItem failed', e);
+      }
+    }
+    // Also save locally as a backup
+    localStorage.setItem(name, value);
+  },
+  removeItem: async (name: string): Promise<void> => {
+    if (typeof window !== 'undefined' && (window as any).CrazyGames?.SDK) {
+      try {
+        const sdk = (window as any).CrazyGames.SDK;
+        if (typeof sdk.init === 'function') {
+            try { await sdk.init(); } catch (e) {}
+        }
+        if (sdk.data) {
+          await sdk.data.removeItem(name);
+        }
+      } catch (e) {
+        console.warn('CrazyGames SDK removeItem failed', e);
+      }
+    }
+    localStorage.removeItem(name);
+  },
+};
 
 export type BlockDimensions = {
   w: number;
@@ -102,11 +156,13 @@ interface AppState {
   selectedType: BlockType;
   performanceMode: boolean;
   isMobile: boolean;
+  furnitureUnlocked: boolean;
   addBlock: (block: BlockData) => void;
   removeBlock: (id: string) => void;
   setColor: (color: string) => void;
   setType: (type: BlockType) => void;
   togglePerformanceMode: () => void;
+  unlockFurniture: () => void;
   clearBlocks: () => void;
   setBlocks: (blocks: BlockData[]) => void;
   resetToHouse: () => void;
@@ -233,6 +289,7 @@ export const useStore = create<AppState>()(
   selectedType: '2x4',
   isMobile: typeof window !== 'undefined' ? /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768 : false,
   performanceMode: typeof window !== 'undefined' ? /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768 : false,
+  furnitureUnlocked: false,
   addBlock: (block) => set((state) => ({ 
     history: [...state.history, state.blocks], 
     redoStack: [],
@@ -246,6 +303,7 @@ export const useStore = create<AppState>()(
   setColor: (color) => set({ selectedColor: color }),
   setType: (type) => set({ selectedType: type }),
   togglePerformanceMode: () => set((state) => ({ performanceMode: !state.performanceMode })),
+  unlockFurniture: () => set({ furnitureUnlocked: true }),
   clearBlocks: () => set((state) => ({ 
     history: [...state.history, state.blocks], 
     redoStack: [],
@@ -278,7 +336,8 @@ export const useStore = create<AppState>()(
 };},
     {
       name: 'block-builder-storage',
-      partialize: (state) => ({ blocks: state.blocks }),
+      storage: createJSONStorage(() => crazyGamesStorage),
+      partialize: (state) => ({ blocks: state.blocks, furnitureUnlocked: state.furnitureUnlocked }),
     }
   )
 );

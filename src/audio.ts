@@ -1,6 +1,19 @@
 let ctx: AudioContext | null = null;
+let isMuted = false;
+
+export function setMuted(mute: boolean) {
+  isMuted = mute;
+  if (ctx) {
+    if (mute && ctx.state === 'running') {
+      ctx.suspend().catch(() => {});
+    } else if (!mute && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+  }
+}
 
 function getContext() {
+  if (isMuted) return null;
   if (!ctx) {
     const Ctx = window.AudioContext || (window as any).webkitAudioContext;
     if (Ctx) {
@@ -11,6 +24,26 @@ function getContext() {
     ctx.resume().catch(() => {});
   }
   return ctx;
+}
+
+export function playJumpSound() {
+  const context = getContext();
+  if (!context) return;
+  const osc = context.createOscillator();
+  const gain = context.createGain();
+  
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(300, context.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(600, context.currentTime + 0.1);
+  
+  gain.gain.setValueAtTime(0, context.currentTime);
+  gain.gain.linearRampToValueAtTime(0.2, context.currentTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.1);
+  
+  osc.connect(gain);
+  gain.connect(context.destination);
+  osc.start();
+  osc.stop(context.currentTime + 0.1);
 }
 
 export function playPlopSound() {

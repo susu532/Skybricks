@@ -1,4 +1,4 @@
-import { Download, Globe, Trash2, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus } from 'lucide-react';
+import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock } from 'lucide-react';
 import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
@@ -114,6 +114,11 @@ const TYPES: { type: BlockType; label: string }[] = [
   { type: 'record_player', label: 'Vinyl Player' },
   { type: 'disco_ball', label: 'Disco Ball' },
 ];
+
+function isFurniture(type: BlockType): boolean {
+  const d = BLOCK_DIMENSIONS[type];
+  return !!d.shape && d.shape !== 'brick' && d.shape !== 'cylinder';
+}
 
 function ModelIcon({ type, selected }: { type: BlockType, selected: boolean }) {
   const d = BLOCK_DIMENSIONS[type];
@@ -267,8 +272,13 @@ export function UI() {
       // Number keys 1-7 for types
       const typeIndex = parseInt(key) - 1;
       if (typeIndex >= 0 && typeIndex < TYPES.length) {
-         setType(TYPES[typeIndex].type);
-         playSelectSound();
+         const targetType = TYPES[typeIndex].type;
+         if (isFurniture(targetType) && !useStore.getState().furnitureUnlocked) {
+             // skip locked via hotkey
+         } else {
+             setType(targetType);
+             playSelectSound();
+         }
       }
       
       // We can use Shift + 1-9 for colors
@@ -299,12 +309,26 @@ export function UI() {
       const currentIndex = TYPES.findIndex(t => t.type === useStore.getState().selectedType);
       if (currentIndex === -1) return;
       
-      let nextIndex = currentIndex + (e.deltaY > 0 ? 1 : -1);
-      if (nextIndex >= TYPES.length) nextIndex = 0;
-      if (nextIndex < 0) nextIndex = TYPES.length - 1;
+      const direction = e.deltaY > 0 ? 1 : -1;
+      let nextIndex = currentIndex;
+      let found = false;
+      const isUnlocked = useStore.getState().furnitureUnlocked;
+
+      for (let i = 0; i < TYPES.length; i++) {
+          nextIndex = nextIndex + direction;
+          if (nextIndex >= TYPES.length) nextIndex = 0;
+          if (nextIndex < 0) nextIndex = TYPES.length - 1;
+          
+          if (!isFurniture(TYPES[nextIndex].type) || isUnlocked) {
+              found = true;
+              break;
+          }
+      }
       
-      setType(TYPES[nextIndex].type);
-      playSelectSound();
+      if (found) {
+        setType(TYPES[nextIndex].type);
+        playSelectSound();
+      }
     };
     
     window.addEventListener('keydown', handleKeyDown);
@@ -343,6 +367,48 @@ export function UI() {
     };
     reader.readAsText(file);
   }, [setBlocks]);
+
+  const handleTypeSelect = (type: BlockType) => {
+    if (isFurniture(type) && !useStore.getState().furnitureUnlocked) {
+        if (confirm('Watch a short ad to unlock all furniture?')) {
+            try {
+                const cg = (window as any).CrazyGames;
+                if (cg && cg.SDK && cg.SDK.ad && cg.SDK.ad.requestAd) {
+                    const callbacks = {
+                        adStarted: () => console.log('Ad started'),
+                        adFinished: () => {
+                            console.log('Ad finished');
+                            useStore.getState().unlockFurniture();
+                            setType(type);
+                            playSelectSound();
+                        },
+                        adError: (error: any) => {
+                            console.error('Ad error', error);
+                            // Fallback in case of ad error (e.g. no fill)
+                            useStore.getState().unlockFurniture();
+                            setType(type);
+                            playSelectSound();
+                        }
+                    };
+                    cg.SDK.ad.requestAd('rewarded', callbacks);
+                } else {
+                    // SDK not available, unlock immediately
+                    useStore.getState().unlockFurniture();
+                    setType(type);
+                    playSelectSound();
+                }
+            } catch (e) {
+                // Ignore any SDK script errors and unlock immediately
+                useStore.getState().unlockFurniture();
+                setType(type);
+                playSelectSound();
+            }
+        }
+        return;
+    }
+    setType(type);
+    playSelectSound();
+  };
 
   return (
     <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between overflow-hidden font-sans">
@@ -405,7 +471,7 @@ export function UI() {
                       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                   }}
-                  onClick={() => { setType(t.type); playSelectSound(); }}
+                  onClick={() => handleTypeSelect(t.type)}
                   className={`relative shrink-0 w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center rounded-xl sm:rounded-2xl transition-all ${
                       selectedType === t.type
                       ? 'bg-white shadow-lg border border-pink-100'
@@ -414,6 +480,9 @@ export function UI() {
                   title={t.label}
                   >
                   <span className="absolute top-1 left-1.5 text-[0.4rem] sm:text-[0.5rem] opacity-30 font-mono z-20 pointer-events-none">{index + 1}</span>
+                  {isFurniture(t.type) && !useStore.getState().furnitureUnlocked && (
+                    <Lock className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-3 h-3 sm:w-4 sm:h-4 text-slate-400 opacity-60 pointer-events-none" />
+                  )}
                   <div className="scale-75 sm:scale-100 flex items-center justify-center w-full h-full">
                      <ModelIcon type={t.type} selected={selectedType === t.type} />
                   </div>
@@ -580,12 +649,6 @@ export function UI() {
                   </button>
               </div>
               <div className="flex gap-2">
-                 <button 
-                      onContextMenu={(e) => e.preventDefault()}
-                      onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
-                      className="w-14 h-14 sm:w-16 sm:h-16 bg-white/80 rounded-full flex items-center justify-center active:bg-red-100 shadow-md opacity-80 touch-none">
-                      <Trash2 className="w-6 h-6 sm:w-7 sm:h-7 text-slate-700" />
-                  </button>
                   <button 
                       onContextMenu={(e) => e.preventDefault()}
                       onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}

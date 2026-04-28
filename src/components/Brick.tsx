@@ -47,9 +47,11 @@ export function getBlockHeight(shape?: string, isPlate?: boolean) {
 
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
 const materialCache: Record<string, THREE.MeshPhysicalMaterial> = {};
 const ghostMaterialCache: Record<string, THREE.MeshPhysicalMaterial> = {};
-const boxGeomCache: Record<string, RoundedBoxGeometry> = {};
+const boxGeomCache: Record<string, THREE.BufferGeometry> = {};
 
 export function getGeometry(width: number, depth: number, height: number, shape?: string) {
   const key = `${width}_${depth}_${height}_${shape || 'brick'}`;
@@ -61,7 +63,34 @@ export function getGeometry(width: number, depth: number, height: number, shape?
       } else {
           geom = new RoundedBoxGeometry(width * BRICK_WIDTH - 0.01, height - 0.01, depth * BRICK_WIDTH - 0.01, 2, 0.02);
       }
-      boxGeomCache[key] = geom as any;
+      
+      const isFurniture = shape && shape !== 'brick' && shape !== 'cylinder';
+      if (!isFurniture) {
+          let baseGeom = geom.toNonIndexed();
+          baseGeom.deleteAttribute('uv');
+          const geometries = [baseGeom];
+          let studGeom = new THREE.CylinderGeometry(STUD_RADIUS, STUD_RADIUS, STUD_HEIGHT, 16).toNonIndexed();
+          studGeom.deleteAttribute('uv');
+          for (let x = 0; x < width; x++) {
+              for (let z = 0; z < depth; z++) {
+                  const clonedStud = studGeom.clone();
+                  clonedStud.translate(
+                      (x - width / 2 + 0.5) * BRICK_WIDTH,
+                      height / 2 + STUD_HEIGHT / 2,
+                      (z - depth / 2 + 0.5) * BRICK_WIDTH
+                  );
+                  geometries.push(clonedStud);
+              }
+          }
+          const mergedGeom = mergeGeometries(geometries);
+          if (mergedGeom) {
+              geom = mergedGeom;
+              geom.computeBoundingSphere();
+              geom.computeBoundingBox();
+          }
+      }
+
+      boxGeomCache[key] = geom;
   }
   return boxGeomCache[key];
 }
@@ -100,8 +129,6 @@ export function getBrickMaterial(color: string, isGhost: boolean = false, isInva
   return cache[cacheKey];
 }
 
-const studGeometry = new THREE.CylinderGeometry(STUD_RADIUS, STUD_RADIUS, STUD_HEIGHT, 16);
-
 export function Brick({ width, depth, isPlate, position, rotation, color, isDynamic, id, isGhost, isInvalid, shape }: any) {
     let height = getBlockHeight(shape, isPlate);
 
@@ -124,23 +151,6 @@ export function Brick({ width, depth, isPlate, position, rotation, color, isDyna
     });
 
     const isFurniture = shape && shape !== 'brick' && shape !== 'cylinder';
-
-    const studs = useMemo(() => {
-        const s = [];
-        if (!isFurniture) {
-            for (let x = 0; x < width; x++) {
-                for (let z = 0; z < depth; z++) {
-                    // For cylinder, if it's 1x1, standard stud. 2x2, standard studs. Keep it simple.
-                    s.push([
-                        (x - width / 2 + 0.5) * BRICK_WIDTH, 
-                        height / 2 + STUD_HEIGHT / 2, 
-                        (z - depth / 2 + 0.5) * BRICK_WIDTH
-                    ]);
-                }
-            }
-        }
-        return s;
-    }, [width, depth, height, shape, isFurniture]);
 
     const boxGeom = getGeometry(width, depth, height, shape);
 
@@ -858,15 +868,6 @@ export function Brick({ width, depth, isPlate, position, rotation, color, isDyna
         content = (
             <group ref={groupRef} userData={{ id, isGhost }}>
                 <mesh userData={{ isGhost, id }} material={material} geometry={boxGeom} />
-                {studs.map((pos, i) => (
-                    <mesh 
-                        key={i} 
-                        userData={{ isGhost, id }}
-                        position={pos as [number, number, number]} 
-                        material={material} 
-                        geometry={studGeometry} 
-                    />
-                ))}
             </group>
         );
     }

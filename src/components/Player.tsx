@@ -6,7 +6,7 @@ import { useKeyboard } from '../hooks/useKeyboard';
 import { useStore, BLOCK_DIMENSIONS, BlockType } from '../store';
 import { getSnappedPosition } from '../utils';
 import { Brick, PLATE_HEIGHT, BRICK_HEIGHT, getBlockHeight } from './Brick';
-import { playPlopSound, playSnapSound } from '../audio';
+import { playPlopSound, playJumpSound } from '../audio';
 
 const SPEED = 8;
 const JUMP_FORCE = 6;
@@ -185,6 +185,7 @@ export function Player({ rotation }: { rotation: number }) {
     } else {
       if (movement.jump && Math.abs(velocity.y) < 0.1) {
          vy = JUMP_FORCE;
+         playJumpSound();
       }
     }
     
