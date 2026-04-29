@@ -563,16 +563,16 @@ export function UI() {
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${!isMobile ? 'hidden' : ''}`}>
           
           {/* Left D-Pad */}
-          <div className="absolute bottom-[200px] landscape:bottom-[150px] sm:bottom-[220px] left-2 landscape:left-8 sm:left-8 md:left-12 pointer-events-none w-32 h-32 portrait:w-36 portrait:h-36 landscape:w-40 landscape:h-40 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-black/10 rounded-full border-2 border-white/20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] backdrop-blur-md">
+          <div className="absolute bottom-[220px] landscape:bottom-[150px] sm:bottom-[220px] portrait:bottom-[250px] left-2 landscape:left-6 sm:left-8 md:left-12 pointer-events-none w-32 h-32 portrait:w-32 portrait:h-32 landscape:w-36 landscape:h-36 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-black/10 rounded-full border-2 border-white/20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] backdrop-blur-md">
             {/* Inner thumbstick placeholder circle */}
-            <div className="absolute inset-0 m-auto w-12 h-12 portrait:w-16 portrait:h-16 landscape:w-20 landscape:h-20 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/10 bg-white/5" />
+            <div className="absolute inset-0 m-auto w-12 h-12 portrait:w-14 portrait:h-14 landscape:w-16 landscape:h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/10 bg-white/5" />
 
             <button 
                 onContextMenu={(e) => e.preventDefault()}
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                className="pointer-events-auto absolute top-1 sm:top-3 left-1/2 -translate-x-1/2 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                className="pointer-events-auto absolute top-1 sm:top-3 left-1/2 -translate-x-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
                 <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
 
@@ -581,7 +581,7 @@ export function UI() {
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                className="pointer-events-auto absolute bottom-1 sm:bottom-3 left-1/2 -translate-x-1/2 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                className="pointer-events-auto absolute bottom-1 sm:bottom-3 left-1/2 -translate-x-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
                 <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
 
@@ -590,7 +590,7 @@ export function UI() {
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                className="pointer-events-auto absolute left-1 sm:left-3 top-1/2 -translate-y-1/2 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                className="pointer-events-auto absolute left-1 sm:left-3 top-1/2 -translate-y-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
                 <ArrowLeft className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
 
@@ -599,18 +599,18 @@ export function UI() {
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                className="pointer-events-auto absolute right-1 sm:right-3 top-1/2 -translate-y-1/2 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                className="pointer-events-auto absolute right-1 sm:right-3 top-1/2 -translate-y-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
                 <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
           </div>
 
           {/* Right Actions */}
-          <div className="absolute bottom-[200px] landscape:bottom-[150px] sm:bottom-[220px] right-2 landscape:right-8 sm:right-8 md:right-12 pointer-events-none w-40 h-40 portrait:w-44 portrait:h-44 landscape:w-40 landscape:h-40 sm:w-48 sm:h-48 md:w-72 md:h-72">
+          <div className="absolute bottom-[220px] landscape:bottom-[150px] sm:bottom-[220px] portrait:bottom-[250px] right-2 landscape:right-6 sm:right-8 md:right-12 pointer-events-none w-40 h-40 portrait:w-36 portrait:h-36 landscape:w-36 landscape:h-36 sm:w-48 sm:h-48 md:w-72 md:h-72">
              {/* Center-ish Place button */}
              <button 
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
-                  className="pointer-events-auto absolute bottom-0 right-0 w-16 h-16 portrait:w-20 portrait:h-20 landscape:w-20 landscape:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-pink-500 rounded-full flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 z-20 border-4 border-white/30">
+                  className="pointer-events-auto absolute bottom-0 right-0 w-16 h-16 portrait:w-16 portrait:h-16 landscape:w-16 landscape:h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-pink-500 rounded-full flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 z-20 border-4 border-white/30">
                   <Plus className="w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14" strokeWidth={3} />
               </button>
 
@@ -618,7 +618,7 @@ export function UI() {
               <button 
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
-                  className="pointer-events-auto absolute bottom-20 landscape:bottom-24 portrait:bottom-24 sm:bottom-32 md:bottom-36 right-1 sm:right-4 w-10 h-10 portrait:w-12 portrait:h-12 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-rose-500 rounded-full flex items-center justify-center active:bg-rose-600 shadow-lg text-white touch-none transition-transform active:scale-95 z-10 border-2 border-white/40">
+                  className="pointer-events-auto absolute bottom-20 landscape:bottom-20 portrait:bottom-[76px] sm:bottom-32 md:bottom-36 right-1 sm:right-4 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-rose-500 rounded-full flex items-center justify-center active:bg-rose-600 shadow-lg text-white touch-none transition-transform active:scale-95 z-10 border-2 border-white/40">
                   <Trash2 className="w-4 h-4 sm:w-6 sm:h-6 md:w-7 md:h-7" />
               </button>
 
@@ -628,7 +628,7 @@ export function UI() {
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', code: 'KeyR' }))}}
                   onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
                   onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                  className="pointer-events-auto absolute bottom-2 sm:bottom-4 right-20 landscape:right-24 portrait:right-24 sm:right-32 md:right-36 w-10 h-10 portrait:w-12 portrait:h-12 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/95 rounded-full flex items-center justify-center active:bg-slate-100 shadow-lg text-slate-700 touch-none transition-transform active:scale-95 z-10 border-2 border-white/40">
+                  className="pointer-events-auto absolute bottom-2 sm:bottom-4 right-20 landscape:right-20 portrait:right-[76px] sm:right-32 md:right-36 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/95 rounded-full flex items-center justify-center active:bg-slate-100 shadow-lg text-slate-700 touch-none transition-transform active:scale-95 z-10 border-2 border-white/40">
                   <RotateCcw className="w-4 h-4 sm:w-6 sm:h-6 md:w-7 md:h-7 font-bold" />
               </button>
 
@@ -638,7 +638,7 @@ export function UI() {
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
                   onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
                   onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                  className="pointer-events-auto absolute bottom-32 landscape:bottom-36 portrait:bottom-36 sm:bottom-44 md:bottom-52 right-16 landscape:right-20 portrait:right-20 sm:right-28 md:right-32 w-10 h-10 portrait:w-12 portrait:h-12 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-slate-200/50 shadow-md touch-none text-slate-700 active:scale-95">
+                  className="pointer-events-auto absolute bottom-32 landscape:bottom-32 portrait:bottom-[120px] sm:bottom-44 md:bottom-52 right-16 landscape:right-16 portrait:right-[40px] sm:right-28 md:right-32 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-slate-200/50 shadow-md touch-none text-slate-700 active:scale-95">
                   <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
               </button>
 
@@ -648,7 +648,7 @@ export function UI() {
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
                   onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
                   onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                  className="pointer-events-auto absolute bottom-16 landscape:bottom-20 portrait:bottom-20 sm:bottom-28 md:bottom-32 right-32 landscape:right-36 portrait:right-36 sm:right-44 md:right-52 w-10 h-10 portrait:w-12 portrait:h-12 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-slate-200/50 shadow-md touch-none text-slate-700 active:scale-95">
+                  className="pointer-events-auto absolute bottom-16 landscape:bottom-16 portrait:bottom-[40px] sm:bottom-28 md:bottom-32 right-32 landscape:right-32 portrait:right-[120px] sm:right-44 md:right-52 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-slate-200/50 shadow-md touch-none text-slate-700 active:scale-95">
                   <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
               </button>
           </div>
