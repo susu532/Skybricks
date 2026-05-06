@@ -2,6 +2,7 @@ import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair
 import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
+import { TutorialOverlay } from './TutorialOverlay';
 
 const COLORS = [
   { name: 'Ballet Pink', hex: '#FFD1DC' },
@@ -435,6 +436,7 @@ export function UI() {
 
   return (
     <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between overflow-hidden font-sans">
+      <TutorialOverlay />
       
       {/* Starting Overlay if not locked (Desktop only) */}
       {(!hasPointerLock && !isMobile) && (
@@ -462,7 +464,10 @@ export function UI() {
           {/* Mobile Menu Toggle */}
           {isMobile && (
             <button 
-              onClick={() => setMenuOpen(!menuOpen)}
+              onClick={() => {
+                 setMenuOpen(!menuOpen);
+                 window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
+              }}
               className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700"
             >
               {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -787,6 +792,10 @@ export function UI() {
             <div className="flex justify-between gap-8">
             <span>Switch colors</span>
             <span className="text-pink-500">← ↑ ↓ →</span>
+          </div>
+           <div className="flex justify-between gap-8">
+            <span>Overlay</span>
+            <span className="text-pink-500">Esc</span>
           </div>
         </div>
       </div>

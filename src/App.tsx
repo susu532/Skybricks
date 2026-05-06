@@ -71,8 +71,9 @@ export default function App() {
           await el.msRequestFullscreen();
         }
 
-        if (screen.orientation && screen.orientation.lock) {
-          await screen.orientation.lock('landscape');
+        const navScreen = screen as any;
+        if (navScreen.orientation && navScreen.orientation.lock) {
+          await navScreen.orientation.lock('landscape');
         }
       } catch (err) {
         console.warn('Could not request fullscreen or lock orientation:', err);

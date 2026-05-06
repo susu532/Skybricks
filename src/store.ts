@@ -160,6 +160,8 @@ interface AppState {
   performanceMode: boolean;
   isMobile: boolean;
   furnitureUnlocked: boolean;
+  hasSeenTutorial: boolean;
+  setHasSeenTutorial: (val: boolean) => void;
   addBlock: (block: BlockData) => void;
   removeBlock: (id: string) => void;
   setColor: (color: string) => void;
@@ -298,6 +300,7 @@ export const useStore = create<AppState>()(
     : false,
   performanceMode: true,
   furnitureUnlocked: false,
+  hasSeenTutorial: false,
   addBlock: (block) => set((state) => ({ 
     history: [...state.history, state.blocks], 
     redoStack: [],
@@ -342,11 +345,15 @@ export const useStore = create<AppState>()(
     };
   }),
   setIsMobile: (isMobile) => set({ isMobile }),
+  setHasSeenTutorial: (val) => set({ hasSeenTutorial: val }),
 };},
     {
       name: 'block-builder-storage',
       storage: createJSONStorage(() => crazyGamesStorage),
-      partialize: (state) => ({ blocks: state.blocks }),
+      partialize: (state) => ({ 
+        blocks: state.blocks, 
+        hasSeenTutorial: state.hasSeenTutorial 
+      }),
     }
   )
 );
