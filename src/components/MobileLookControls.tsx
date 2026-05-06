@@ -19,8 +19,13 @@ export function MobileLookControls() {
 
     // Use passive: false so we can preventDefault
     const onTouchStart = (event: TouchEvent) => {
-      // Don't start dragging if touching UI buttons
-      if ((event.target as HTMLElement).tagName === 'BUTTON' || (event.target as HTMLElement).closest('button')) {
+      // Don't start dragging if touching UI buttons or bottom hotbars
+      const target = event.target as HTMLElement;
+      if (
+          target.tagName === 'BUTTON' || 
+          target.closest('button') ||
+          target.closest('.pointer-events-auto')
+      ) {
           return;
       }
 

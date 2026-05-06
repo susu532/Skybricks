@@ -439,12 +439,9 @@ export function UI() {
       {/* Starting Overlay if not locked (Desktop only) */}
       {(!hasPointerLock && !isMobile) && (
         <div className="absolute inset-x-0 top-1/4 pointer-events-none flex justify-center z-[60] p-4 transition-opacity animate-in fade-in slide-in-from-top-4 duration-300">
-          <button 
-            onClick={() => document.body.requestPointerLock()}
-            className="bg-white/95 backdrop-blur-md text-pink-500 font-bold py-3 px-8 rounded-full shadow-2xl border border-pink-100 transition-all hover:scale-105 active:scale-95 text-xl tracking-tight pointer-events-auto"
-          >
-            Click here to resume
-          </button>
+          <div className="bg-white/95 backdrop-blur-md text-pink-500 font-bold py-3 px-8 rounded-full shadow-2xl border border-pink-100 text-xl tracking-tight pointer-events-none animate-pulse">
+            Click anywhere to resume
+          </div>
         </div>
       )}
 
@@ -563,17 +560,17 @@ export function UI() {
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${!isMobile ? 'hidden' : ''}`}>
           
           {/* Left D-Pad */}
-          <div className="absolute bottom-[220px] landscape:bottom-[150px] sm:bottom-[220px] portrait:bottom-[250px] left-2 landscape:left-6 sm:left-8 md:left-12 pointer-events-none w-32 h-32 portrait:w-32 portrait:h-32 landscape:w-36 landscape:h-36 sm:w-40 sm:h-40 md:w-56 md:h-56 bg-black/10 rounded-full border-2 border-white/20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] backdrop-blur-md">
+          <div className="absolute bottom-28 landscape:bottom-6 portrait:bottom-[180px] left-2 landscape:left-8 sm:left-12 sm:bottom-12 pointer-events-none w-36 h-36 landscape:w-[140px] landscape:h-[140px] sm:w-48 sm:h-48 md:w-56 md:h-56 bg-black/10 rounded-full border-2 border-white/20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] backdrop-blur-md" style={{ left: 'max(0.5rem, env(safe-area-inset-left))' }}>
             {/* Inner thumbstick placeholder circle */}
-            <div className="absolute inset-0 m-auto w-12 h-12 portrait:w-14 portrait:h-14 landscape:w-16 landscape:h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/10 bg-white/5" />
+            <div className="absolute inset-0 m-auto w-14 h-14 landscape:w-16 landscape:h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/10 bg-white/5" />
 
             <button 
                 onContextMenu={(e) => e.preventDefault()}
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                className="pointer-events-auto absolute top-1 sm:top-3 left-1/2 -translate-x-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                className="pointer-events-auto absolute top-1 sm:top-2 md:top-3 left-1/2 -translate-x-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                <ArrowUp className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
 
             <button 
@@ -581,8 +578,8 @@ export function UI() {
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                className="pointer-events-auto absolute bottom-1 sm:bottom-3 left-1/2 -translate-x-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                className="pointer-events-auto absolute bottom-1 sm:bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                <ArrowDown className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
 
             <button 
@@ -590,8 +587,8 @@ export function UI() {
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                className="pointer-events-auto absolute left-1 sm:left-3 top-1/2 -translate-y-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowLeft className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                className="pointer-events-auto absolute left-1 sm:left-2 md:left-3 top-1/2 -translate-y-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
 
             <button 
@@ -599,27 +596,27 @@ export function UI() {
                 onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
                 onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
                 onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                className="pointer-events-auto absolute right-1 sm:right-3 top-1/2 -translate-y-1/2 w-10 h-10 portrait:w-10 portrait:h-10 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                className="pointer-events-auto absolute right-1 sm:right-2 md:right-3 top-1/2 -translate-y-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
+                <ArrowRight className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
             </button>
           </div>
 
           {/* Right Actions */}
-          <div className="absolute bottom-[220px] landscape:bottom-[150px] sm:bottom-[220px] portrait:bottom-[250px] right-2 landscape:right-6 sm:right-8 md:right-12 pointer-events-none w-40 h-40 portrait:w-36 portrait:h-36 landscape:w-36 landscape:h-36 sm:w-48 sm:h-48 md:w-72 md:h-72">
+          <div className="absolute bottom-28 landscape:bottom-6 portrait:bottom-[180px] right-2 landscape:right-8 sm:right-12 sm:bottom-12 pointer-events-none w-40 h-40 landscape:w-[180px] landscape:h-[180px] sm:w-56 sm:h-56" style={{ right: 'max(0.5rem, env(safe-area-inset-right))' }}>
              {/* Center-ish Place button */}
              <button 
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
-                  className="pointer-events-auto absolute bottom-0 right-0 w-16 h-16 portrait:w-16 portrait:h-16 landscape:w-16 landscape:h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-pink-500 rounded-full flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 z-20 border-4 border-white/30">
-                  <Plus className="w-8 h-8 sm:w-12 sm:h-12 md:w-14 md:h-14" strokeWidth={3} />
+                  className="pointer-events-auto absolute bottom-0 right-0 w-[4.5rem] h-[4.5rem] landscape:w-20 landscape:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-pink-500 rounded-[2.5rem] sm:rounded-[3rem] flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 z-20 border-4 border-white/30 backdrop-blur-sm">
+                  <Plus className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" strokeWidth={3} />
               </button>
 
               {/* Delete button (Up from Place) */}
               <button 
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
-                  className="pointer-events-auto absolute bottom-20 landscape:bottom-20 portrait:bottom-[76px] sm:bottom-32 md:bottom-36 right-1 sm:right-4 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-rose-500 rounded-full flex items-center justify-center active:bg-rose-600 shadow-lg text-white touch-none transition-transform active:scale-95 z-10 border-2 border-white/40">
-                  <Trash2 className="w-4 h-4 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+                  className="pointer-events-auto absolute bottom-[5.5rem] landscape:bottom-[90px] sm:bottom-28 right-0 sm:right-2 w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-rose-500/90 rounded-full flex items-center justify-center active:bg-rose-600 shadow-lg text-white touch-none transition-transform active:scale-95 z-10 border-2 border-white/40 backdrop-blur-md">
+                  <Trash2 className="w-6 h-6 sm:w-7 sm:h-7" />
               </button>
 
               {/* Rotate button (Left from Place) */}
@@ -628,8 +625,8 @@ export function UI() {
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', code: 'KeyR' }))}}
                   onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
                   onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                  className="pointer-events-auto absolute bottom-2 sm:bottom-4 right-20 landscape:right-20 portrait:right-[76px] sm:right-32 md:right-36 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/95 rounded-full flex items-center justify-center active:bg-slate-100 shadow-lg text-slate-700 touch-none transition-transform active:scale-95 z-10 border-2 border-white/40">
-                  <RotateCcw className="w-4 h-4 sm:w-6 sm:h-6 md:w-7 md:h-7 font-bold" />
+                  className="pointer-events-auto absolute bottom-0 right-[5.5rem] landscape:right-[90px] sm:right-28 w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-white/95 rounded-full flex items-center justify-center active:bg-slate-100 shadow-lg text-slate-700 touch-none transition-transform active:scale-95 z-10 border-2 border-white/40 backdrop-blur-md">
+                  <RotateCcw className="w-6 h-6 sm:w-7 sm:h-7 font-bold" />
               </button>
 
               {/* Up button */}
@@ -638,8 +635,8 @@ export function UI() {
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
                   onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
                   onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                  className="pointer-events-auto absolute bottom-32 landscape:bottom-32 portrait:bottom-[120px] sm:bottom-44 md:bottom-52 right-16 landscape:right-16 portrait:right-[40px] sm:right-28 md:right-32 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-slate-200/50 shadow-md touch-none text-slate-700 active:scale-95">
-                  <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                  className="pointer-events-auto absolute bottom-[100px] landscape:bottom-[130px] sm:bottom-[160px] right-[48px] landscape:right-[60px] sm:right-[72px] w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md z-10">
+                  <ArrowUp className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
 
               {/* Down button */}
@@ -648,20 +645,20 @@ export function UI() {
                   onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
                   onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
                   onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                  className="pointer-events-auto absolute bottom-16 landscape:bottom-16 portrait:bottom-[40px] sm:bottom-28 md:bottom-32 right-32 landscape:right-32 portrait:right-[120px] sm:right-44 md:right-52 w-10 h-10 portrait:w-11 portrait:h-11 landscape:w-11 landscape:h-11 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-slate-200/50 shadow-md touch-none text-slate-700 active:scale-95">
-                  <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7 md:w-8 md:h-8" />
+                  className="pointer-events-auto absolute bottom-[48px] landscape:bottom-[60px] sm:bottom-[88px] right-[100px] landscape:right-[130px] sm:right-[140px] w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md z-10">
+                  <ArrowDown className="w-6 h-6 sm:w-8 sm:h-8" />
               </button>
           </div>
         </div>
 
         {/* Bottom Horizontal Bar (Colors + Bricks + Tools) */}
-        <div className={`absolute bottom-0 inset-x-0 flex flex-col items-center justify-center px-1 pb-1 md:pb-6 transition-all duration-300 z-50 origin-bottom ${(hasPointerLock && !isMobile) ? 'opacity-80 scale-95 pointer-events-none' : 'pointer-events-auto'} w-full overflow-hidden`}>
+        <div className={`absolute pointer-events-none z-50 bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
             
             {/* Mobile Brick Selector */}
             {isMobile && (
-              <div className="w-full flex flex-col gap-1 mb-1 max-w-full">
+              <div className="w-full sm:w-[500px] md:w-[600px] flex flex-col gap-1.5 mb-1.5 pointer-events-auto max-w-[80vw] mx-auto">
                 {/* Category Selector */}
-                <div className="flex items-center w-full justify-between gap-1 bg-white/60 backdrop-blur-md p-1 rounded-2xl border border-white/50 overflow-x-auto touch-pan-x hide-scrollbar">
+                <div className="flex items-center w-full justify-between gap-1 sm:gap-2 bg-white/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/50 overflow-x-auto touch-pan-x hide-scrollbar">
                   {BRICK_CATEGORIES.map((cat) => {
                     const CategoryIcon = cat.icon;
                     return (
@@ -678,7 +675,7 @@ export function UI() {
                 </div>
 
                 {/* Bricks in Selected Category */}
-                <div className="w-full bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-xl border border-white/50 items-center">
+                <div className="w-full bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 items-center">
                   <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1.5 px-0.5 py-0.5 snap-x snap-mandatory">
                     {CATEGORIZED_TYPES[activeCategory].map((t) => (
                       <button
@@ -703,9 +700,9 @@ export function UI() {
               </div>
             )}
 
-            <div className="flex flex-row items-center justify-center w-full md:w-auto">
+            <div className="flex flex-row items-center justify-center w-full sm:w-auto pointer-events-auto max-w-[70vw] mx-auto">
               {/* Color Hotbar */}
-              <div className="bg-white/80 backdrop-blur-xl p-1.5 md:p-3 rounded-2xl md:rounded-3xl shadow-xl border border-white/50 flex w-full items-center gap-1 max-w-full overflow-hidden flex-1 md:w-auto">
+              <div className="bg-white/80 backdrop-blur-xl p-1.5 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 flex w-full items-center gap-1 max-w-full overflow-hidden flex-1 md:w-auto">
                   <div className="flex flex-1 w-full overflow-x-auto touch-pan-x hide-scrollbar md:flex-wrap items-center md:justify-center gap-1.5 md:gap-2 px-1 py-1 md:py-2 snap-x snap-mandatory rounded-xl md:rounded-none md:max-w-4xl">
                   {COLORS.map((c) => (
                       <button
@@ -786,6 +783,10 @@ export function UI() {
              <div className="flex justify-between gap-8">
             <span>Re Undo</span>
             <span className="text-pink-500">Ctrl+Y</span>
+          </div>
+            <div className="flex justify-between gap-8">
+            <span>Switch colors</span>
+            <span className="text-pink-500">← ↑ ↓ →</span>
           </div>
         </div>
       </div>

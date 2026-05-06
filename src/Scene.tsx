@@ -77,6 +77,7 @@ export function Scene() {
                 color={b.color}
                 isDynamic={false}
                 isGhost={false}
+                performanceMode={performanceMode}
               />
             );
           })}

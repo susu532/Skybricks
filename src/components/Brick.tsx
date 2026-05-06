@@ -49,8 +49,8 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-const materialCache: Record<string, THREE.MeshPhysicalMaterial> = {};
-const ghostMaterialCache: Record<string, THREE.MeshPhysicalMaterial> = {};
+const materialCache: Record<string, THREE.Material> = {};
+const ghostMaterialCache: Record<string, THREE.Material> = {};
 const boxGeomCache: Record<string, THREE.BufferGeometry> = {};
 
 export function getGeometry(width: number, depth: number, height: number, shape?: string) {
@@ -95,12 +95,12 @@ export function getGeometry(width: number, depth: number, height: number, shape?
   return boxGeomCache[key];
 }
 
-export function getBrickMaterial(color: string, isGhost: boolean = false, isInvalid: boolean = false) {
-  const cacheKey = `${color}${isGhost ? '_ghost' : ''}${isInvalid ? '_invalid' : ''}`;
+export function getBrickMaterial(color: string, isGhost: boolean = false, isInvalid: boolean = false, performanceMode: boolean = false) {
+  const cacheKey = `${color}${isGhost ? '_ghost' : ''}${isInvalid ? '_invalid' : ''}${performanceMode ? '_perf' : ''}`;
   const cache = isGhost ? ghostMaterialCache : materialCache;
   if (!cache[cacheKey]) {
     if (isGhost) {
-      cache[cacheKey] = new THREE.MeshPhysicalMaterial({
+      cache[cacheKey] = new THREE.MeshStandardMaterial({
         color: isInvalid ? '#ff0000' : color,
         roughness: 0.1,
         metalness: 0,
@@ -111,44 +111,52 @@ export function getBrickMaterial(color: string, isGhost: boolean = false, isInva
         emissiveIntensity: 0.5,
       });
     } else {
-      cache[cacheKey] = new THREE.MeshPhysicalMaterial({
-        color: color,
-        roughness: 0.15, // Polished plastic
-        metalness: 0.05, // Slight depth
-        clearcoat: 0.5, // Better sheen
-        clearcoatRoughness: 0.1,
-        ior: 1.48, // Standard acrylic/plastic
-        transparent: false,
-        opacity: 1.0,
-        depthWrite: true,
-        reflectivity: 0.5,
-        envMapIntensity: 1.4,
-      });
+      if (performanceMode) {
+        cache[cacheKey] = new THREE.MeshStandardMaterial({
+          color: color,
+          roughness: 0.4,
+          metalness: 0.0,
+        });
+      } else {
+        cache[cacheKey] = new THREE.MeshPhysicalMaterial({
+          color: color,
+          roughness: 0.15, // Polished plastic
+          metalness: 0.05, // Slight depth
+          clearcoat: 0.5, // Better sheen
+          clearcoatRoughness: 0.1,
+          ior: 1.48, // Standard acrylic/plastic
+          transparent: false,
+          opacity: 1.0,
+          depthWrite: true,
+          reflectivity: 0.5,
+          envMapIntensity: 1.4,
+        });
+      }
     }
   }
   return cache[cacheKey];
 }
 
-export function Brick({ width, depth, isPlate, position, rotation, color, isDynamic, id, isGhost, isInvalid, shape }: any) {
+function GhostAnimator({ groupRef, material, isInvalid }: { groupRef: any, material: any, isInvalid: boolean }) {
+  useFrame((state) => {
+    if (groupRef.current) {
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.02;
+      if (material) {
+        material.emissiveIntensity = 0.5 + Math.sin(state.clock.elapsedTime * 6) * 0.3;
+        if (isInvalid) {
+          material.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 8) * 0.2;
+        }
+      }
+    }
+  });
+  return null;
+}
+
+export function Brick({ width, depth, isPlate, position, rotation, color, isDynamic, id, isGhost, isInvalid, shape, performanceMode }: any) {
     let height = getBlockHeight(shape, isPlate);
 
-    const material = getBrickMaterial(color, isGhost, isInvalid);
+    const material = getBrickMaterial(color, isGhost, isInvalid, performanceMode);
     const groupRef = useRef<THREE.Group>(null);
-
-    useFrame((state) => {
-        if (isGhost && groupRef.current) {
-            // Very subtle idle float - reduced to not interfere with smooth movement
-            groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.02;
-            
-            // Pulsing effect
-            if (material) {
-                material.emissiveIntensity = 0.5 + Math.sin(state.clock.elapsedTime * 6) * 0.3;
-                if (isInvalid) {
-                    material.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 8) * 0.2;
-                }
-            }
-        }
-    });
 
     const isFurniture = shape && shape !== 'brick' && shape !== 'cylinder';
 
@@ -873,7 +881,12 @@ export function Brick({ width, depth, isPlate, position, rotation, color, isDyna
     }
 
     if (isGhost) {
-        return <group position={position} rotation={rotation}>{content}</group>;
+        return (
+            <group position={position} rotation={rotation}>
+                <GhostAnimator groupRef={groupRef} material={material} isInvalid={isInvalid} />
+                {content}
+            </group>
+        );
     }
 
     return (

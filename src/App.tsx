@@ -41,8 +41,8 @@ export default function App() {
 
     const handleResize = () => {
       const isWindowMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-        window.innerWidth < 768 || 
-        (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
+        (window.innerWidth < 768 && (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)) ||
+        (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent));
       useStore.getState().setIsMobile(isWindowMobile);
     };
 
@@ -56,8 +56,29 @@ export default function App() {
     };
   }, []);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setStarted(true);
+
+    const isMobile = useStore.getState().isMobile;
+    if (isMobile) {
+      try {
+        const el = document.documentElement as any;
+        if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if (el.webkitRequestFullscreen) {
+          await el.webkitRequestFullscreen();
+        } else if (el.msRequestFullscreen) {
+          await el.msRequestFullscreen();
+        }
+
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock('landscape');
+        }
+      } catch (err) {
+        console.warn('Could not request fullscreen or lock orientation:', err);
+      }
+    }
+
     try {
       const cg = (window as any).CrazyGames;
       if (cg && cg.SDK && cg.SDK.game && typeof cg.SDK.game.gameplayStart === 'function') {

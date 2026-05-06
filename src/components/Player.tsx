@@ -122,6 +122,25 @@ export function Player({ rotation }: { rotation: number }) {
   };
 
   const searchPattern = useMemo(() => {
+    if (useStore.getState().performanceMode) {
+        const offsets: [number, number, number][] = [];
+        const range = 2; // smaller range for mobile
+        const yRange = 1; 
+        for (let x = -range; x <= range; x++) {
+            for (let z = -range; z <= range; z++) {
+                for (let y = -yRange; y <= yRange; y++) {
+                    if (x === 0 && y === 0 && z === 0) continue;
+                    offsets.push([x, y, z]);
+                }
+            }
+        }
+        return offsets.sort((a, b) => {
+            const dA = a[0]*a[0] + a[1]*a[1] + a[2]*a[2];
+            const dB = b[0]*b[0] + b[1]*b[1] + b[2]*b[2];
+            return dA - dB;
+        });
+    }
+
     const offsets: [number, number, number][] = [];
     const range = 5; // Extra expanded reach for edge placements
     const yRange = 3; // Allows checking +/- 1.2 units
@@ -140,6 +159,8 @@ export function Player({ rotation }: { rotation: number }) {
         return dA - dB;
     });
   }, [height]);
+
+  const lastGhostUpdate = useRef(0);
 
   useFrame((state) => {
     if (!ref.current) return;
@@ -194,6 +215,11 @@ export function Player({ rotation }: { rotation: number }) {
     const pos = ref.current.translation();
     camera.position.set(pos.x, pos.y + 1.2, pos.z);
 
+    const nowTime = performance.now();
+    const fpsLimit = useStore.getState().performanceMode ? 66 : 0; // Throttle to ~15hz on mobile for ghost search
+    if (nowTime - lastGhostUpdate.current < fpsLimit) return;
+    lastGhostUpdate.current = nowTime;
+
     // Ghost Placement Logic
     const start = camera.position.clone();
     const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
@@ -239,7 +265,7 @@ export function Player({ rotation }: { rotation: number }) {
         // PREVENT PLACING INSIDE OR UNDERGROUND
         if (testP[1] - height / 2 < -0.01) return; // Must be above/on ground
         
-        const key = `${testP[0].toFixed(1)},${testP[1].toFixed(1)},${testP[2].toFixed(1)}`;
+        const key = Math.round(testP[0]*10) + '_' + Math.round(testP[1]*10) + '_' + Math.round(testP[2]*10);
         if (evaluated.has(key)) return;
         evaluated.add(key);
 
@@ -427,6 +453,7 @@ export function Player({ rotation }: { rotation: number }) {
               isDynamic={false}
               isGhost={true}
               isInvalid={isGhostInvalid}
+              performanceMode={true}
             />
         </group>
       )}
