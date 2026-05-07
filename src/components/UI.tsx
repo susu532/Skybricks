@@ -1,4 +1,4 @@
-import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2, Menu, X } from 'lucide-react';
+import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2, Menu, X, Maximize } from 'lucide-react';
 import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
@@ -512,6 +512,30 @@ export function UI() {
               >
                   {performanceMode ? <ZapOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
+              <button
+                  onClick={() => {
+                      try {
+                          const el = document.documentElement as any;
+                          if (!document.fullscreenElement) {
+                              if (el.requestFullscreen) el.requestFullscreen();
+                              else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                              else if (el.msRequestFullscreen) el.msRequestFullscreen();
+                              
+                              const navScreen = screen as any;
+                              if (navScreen.orientation && navScreen.orientation.lock) {
+                                  navScreen.orientation.lock('landscape').catch(() => {});
+                              }
+                          } else {
+                              if (document.exitFullscreen) document.exitFullscreen();
+                          }
+                          playSelectSound();
+                      } catch(e) {}
+                  }}
+                  className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all flex items-center justify-center"
+                  title="Toggle Fullscreen"
+              >
+                  <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
               <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleLoad} />
               <button onClick={() => fileInputRef.current?.click()} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
                   <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -656,37 +680,36 @@ export function UI() {
           </div>
         </div>
 
-        {/* Bottom Horizontal Bar (Colors + Bricks + Tools) */}
-        <div className={`absolute pointer-events-none z-50 bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
+        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-1 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
             
             {/* Mobile Brick Selector */}
             {isMobile && (
-              <div className="w-full sm:w-[500px] md:w-[600px] flex flex-col gap-1.5 mb-1.5 pointer-events-auto max-w-[80vw] mx-auto">
+              <div className="w-full portrait:max-w-[95vw] landscape:w-auto landscape:max-w-[calc(100vw-360px)] sm:w-[500px] md:w-[600px] flex flex-col gap-1 mb-1 sm:gap-1.5 sm:mb-1.5 pointer-events-auto mx-auto">
                 {/* Category Selector */}
-                <div className="flex items-center w-full justify-between gap-1 sm:gap-2 bg-white/60 backdrop-blur-md p-1.5 rounded-2xl border border-white/50 overflow-x-auto touch-pan-x hide-scrollbar">
+                <div className="flex items-center w-full justify-between gap-1 sm:gap-2 bg-white/60 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl border border-white/50 overflow-x-auto touch-pan-x hide-scrollbar">
                   {BRICK_CATEGORIES.map((cat) => {
                     const CategoryIcon = cat.icon;
                     return (
                       <button
                         key={cat.id}
                         onClick={() => setActiveCategory(cat.id as any)}
-                        className={`flex-1 shrink-0 flex items-center justify-center gap-1.5 py-1.5 rounded-xl transition-all min-w-[70px] ${activeCategory === cat.id ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-600'}`}
+                        className={`flex-1 shrink-0 flex items-center justify-center gap-1.5 py-1 sm:py-1.5 rounded-xl transition-all min-w-[60px] sm:min-w-[70px] ${activeCategory === cat.id ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-600'}`}
                       >
-                        <CategoryIcon className="w-4 h-4" />
-                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">{cat.label}</span>
+                        <CategoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        <span className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider hidden portrait:inline-block landscape:inline-block">{cat.label}</span>
                       </button>
                     );
                   })}
                 </div>
 
                 {/* Bricks in Selected Category */}
-                <div className="w-full bg-white/80 backdrop-blur-xl p-1.5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 items-center">
-                  <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1.5 px-0.5 py-0.5 snap-x snap-mandatory">
+                <div className="w-full bg-white/80 backdrop-blur-xl p-1 sm:p-1.5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 items-center">
+                  <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1 sm:gap-1.5 px-0.5 py-0.5 snap-x snap-mandatory">
                     {CATEGORIZED_TYPES[activeCategory].map((t) => (
                       <button
                         key={t.type}
                         onClick={() => handleTypeSelect(t.type)}
-                        className={`relative shrink-0 w-12 h-12 flex items-center justify-center rounded-xl transition-all snap-center ${
+                        className={`relative shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all snap-center ${
                           selectedType === t.type
                             ? 'bg-white shadow-md border border-pink-200 ring-2 ring-pink-500/20'
                             : 'bg-transparent hover:bg-white/40'
@@ -695,7 +718,7 @@ export function UI() {
                         {isFurniture(t.type) && !furnitureUnlocked && (
                           <Lock className="absolute top-0.5 right-0.5 w-2.5 h-2.5 text-slate-400 opacity-60 pointer-events-none" />
                         )}
-                        <div className="scale-[0.6] flex items-center justify-center w-full h-full pointer-events-none">
+                        <div className="scale-[0.5] sm:scale-[0.6] flex items-center justify-center w-full h-full pointer-events-none">
                           <ModelIcon type={t.type} selected={selectedType === t.type} />
                         </div>
                       </button>
@@ -705,15 +728,15 @@ export function UI() {
               </div>
             )}
 
-            <div className="flex flex-row items-center justify-center w-full sm:w-auto pointer-events-auto max-w-[70vw] mx-auto">
+            <div className="flex flex-row items-center justify-center w-full portrait:max-w-[90vw] landscape:w-auto landscape:max-w-[calc(100vw-360px)] sm:w-auto pointer-events-auto mx-auto">
               {/* Color Hotbar */}
-              <div className="bg-white/80 backdrop-blur-xl p-1.5 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 flex w-full items-center gap-1 max-w-full overflow-hidden flex-1 md:w-auto">
+              <div className="bg-white/80 backdrop-blur-xl p-1 sm:p-1.5 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 flex w-full items-center gap-1 max-w-full overflow-hidden flex-1 md:w-auto">
                   <div className="flex flex-1 w-full overflow-x-auto touch-pan-x hide-scrollbar md:flex-wrap items-center md:justify-center gap-1.5 md:gap-2 px-1 py-1 md:py-2 snap-x snap-mandatory rounded-xl md:rounded-none md:max-w-4xl">
                   {COLORS.map((c) => (
                       <button
                       key={c.hex}
                       onClick={() => { setColor(c.hex); playSelectSound(); }}
-                      className={`flex-shrink-0 snap-center w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
+                      className={`flex-shrink-0 snap-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
                           selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
                       }`}
                       style={{ backgroundColor: c.hex }}

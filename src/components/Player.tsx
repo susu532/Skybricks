@@ -1,5 +1,5 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { RigidBody, CapsuleCollider } from '@react-three/rapier';
+import { RigidBody, CapsuleCollider, useRapier } from '@react-three/rapier';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { useKeyboard } from '../hooks/useKeyboard';
@@ -19,6 +19,7 @@ export function Player({ rotation }: { rotation: number }) {
   const ref = useRef<any>(null);
   const movement = useKeyboard();
   const { camera, scene } = useThree();
+  const { world, rapier } = useRapier();
   const [ghostPos, setGhostPos] = useState<[number, number, number] | null>(null);
   const [isGhostInvalid, setIsGhostInvalid] = useState(false);
   const [isFlying, setIsFlying] = useState(false);
@@ -31,7 +32,6 @@ export function Player({ rotation }: { rotation: number }) {
   const height = getBlockHeight(dims.shape, dims.isPlate);
 
   const getNearbyBlocks = (point: THREE.Vector3) => {
-      // Fast broad-phase filter
       return useStore.getState().blocks.filter(b => {
           return Math.abs(b.position[0] - point.x) < 15 &&
                  Math.abs(b.position[1] - point.y) < 15 &&
@@ -77,11 +77,9 @@ export function Player({ rotation }: { rotation: number }) {
   };
 
   const checkSupport = (pos: number[], nearbyBlocks: any[]) => {
-      // Is it on the ground? (y=0 is the floor)
       const bottomY = pos[1] - height / 2;
       if (Math.abs(bottomY) < 0.01) return true;
 
-      // Vertical support check (Stud connection)
       const b1_w = Math.abs(rotation % Math.PI) > 0.1 ? dims.d : dims.w;
       const b1_d = Math.abs(rotation % Math.PI) > 0.1 ? dims.w : dims.d;
       const b1_minX = pos[0] - b1_w / 2;
@@ -91,7 +89,7 @@ export function Player({ rotation }: { rotation: number }) {
       const b1_minZ = pos[2] - b1_d / 2;
       const b1_maxZ = pos[2] + b1_d / 2;
 
-      const epsilon = 0.1; // Small margin for contact detection
+      const epsilon = 0.1;
 
       return nearbyBlocks.some((b) => {
           const d2 = BLOCK_DIMENSIONS[b.type as BlockType] || { w: 1, d: 1, shape: 'brick' as const };
@@ -107,7 +105,6 @@ export function Player({ rotation }: { rotation: number }) {
           const b2_minZ = b.position[2] - b2_d / 2;
           const b2_maxZ = b.position[2] + b2_d / 2;
 
-          // Stacking/Attached check: Must overlap in XZ and touch exactly in Y (Top-to-Bottom or Bottom-to-Top)
           const overlapX = b1_minX < b2_maxX - epsilon && b1_maxX > b2_minX + epsilon;
           const overlapZ = b1_minZ < b2_maxZ - epsilon && b1_maxZ > b2_minZ + epsilon;
           
@@ -124,7 +121,7 @@ export function Player({ rotation }: { rotation: number }) {
   const searchPattern = useMemo(() => {
     if (useStore.getState().performanceMode) {
         const offsets: [number, number, number][] = [];
-        const range = 2; // smaller range for mobile
+        const range = 2;
         const yRange = 1; 
         for (let x = -range; x <= range; x++) {
             for (let z = -range; z <= range; z++) {
@@ -142,8 +139,8 @@ export function Player({ rotation }: { rotation: number }) {
     }
 
     const offsets: [number, number, number][] = [];
-    const range = 5; // Extra expanded reach for edge placements
-    const yRange = 3; // Allows checking +/- 1.2 units
+    const range = 5;
+    const yRange = 3;
     for (let x = -range; x <= range; x++) {
         for (let z = -range; z <= range; z++) {
             for (let y = -yRange; y <= yRange; y++) {
@@ -152,7 +149,6 @@ export function Player({ rotation }: { rotation: number }) {
             }
         }
     }
-    // Sort radially outward for fast early-exit during scoring
     return offsets.sort((a, b) => {
         const dA = a[0]*a[0] + a[1]*a[1] + a[2]*a[2];
         const dB = b[0]*b[0] + b[1]*b[1] + b[2]*b[2];
@@ -216,37 +212,42 @@ export function Player({ rotation }: { rotation: number }) {
     camera.position.set(pos.x, pos.y + 1.2, pos.z);
 
     const nowTime = performance.now();
-    const fpsLimit = useStore.getState().performanceMode ? 66 : 0; // Throttle to ~15hz on mobile for ghost search
+    const fpsLimit = useStore.getState().performanceMode ? 66 : 0;
     if (nowTime - lastGhostUpdate.current < fpsLimit) return;
     lastGhostUpdate.current = nowTime;
 
-    // Ghost Placement Logic
     const start = camera.position.clone();
     const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
-    const ray = new THREE.Ray(start, dir);
-    const raycaster = new THREE.Raycaster(start, dir, 0, 8);
     
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    const hit = intersects.find((i: any) => {
-        let obj = i.object;
-        while (obj) {
-            if (obj.userData?.isGhost || obj.userData?.isPlayer) return false;
-            obj = obj.parent;
-        }
-        return true;
-    });
+    // Rapier Raycast
+    const ray = new rapier.Ray(start, dir);
+    const threeRay = new THREE.Ray(start, dir);
+    const playerCollider = ref.current?.collider(0); 
+    
+    // castRayAndGetNormal(ray, maxToi, solid, collisionGroups, filterFlags, filterCollider)
+    const hit = world.castRayAndGetNormal(
+        ray, 
+        8, 
+        true, 
+        undefined, 
+        undefined, 
+        playerCollider
+    );
     
     const basePointsToSearch: {point: THREE.Vector3, normal: THREE.Vector3}[] = [];
 
-    if (hit && hit.face) {
-        basePointsToSearch.push({point: hit.point, normal: hit.face.normal});
+    if (hit) {
+        const hitPoint = threeRay.at(hit.timeOfImpact, new THREE.Vector3());
+        basePointsToSearch.push({
+            point: new THREE.Vector3(hitPoint.x, hitPoint.y, hitPoint.z), 
+            normal: new THREE.Vector3().copy(hit.normal as any)
+        });
     }
 
-    // Try projecting onto the current build plane to support dragging over empty space perfectly
     const currentGhostY = ghostPosRef.current ? ghostPosRef.current[1] : height / 2;
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentGhostY);
     const hitPlane = new THREE.Vector3();
-    if (ray.intersectPlane(plane, hitPlane)) {
+    if (threeRay.intersectPlane(plane, hitPlane)) {
         if (hitPlane.distanceTo(start) < 8) {
             basePointsToSearch.push({point: hitPlane, normal: new THREE.Vector3(0, 1, 0)});
         }
@@ -255,22 +256,21 @@ export function Player({ rotation }: { rotation: number }) {
     let targetPos: [number, number, number] | null = null;
     let minScore = Infinity;
 
-    // Use hit point, or default if missing, for getting localized blocks bounds
-    const searchCenter = hit ? hit.point : hitPlane;
+    const hitPointForSearch = hit ? threeRay.at(hit.timeOfImpact, new THREE.Vector3()) : null;
+    const searchCenter = hitPointForSearch ? new THREE.Vector3(hitPointForSearch.x, hitPointForSearch.y, hitPointForSearch.z) : hitPlane;
     const nearbyBlocks = getNearbyBlocks(searchCenter);
 
     const evaluated = new Set<string>();
 
     const evaluatePos = (testP: number[], queryPoint: THREE.Vector3) => {
-        // PREVENT PLACING INSIDE OR UNDERGROUND
-        if (testP[1] - height / 2 < -0.01) return; // Must be above/on ground
+        if (testP[1] - height / 2 < -0.01) return;
         
         const key = Math.round(testP[0]*10) + '_' + Math.round(testP[1]*10) + '_' + Math.round(testP[2]*10);
         if (evaluated.has(key)) return;
         evaluated.add(key);
 
         const center = new THREE.Vector3(testP[0], testP[1], testP[2]);
-        const distToCenter = ray.distanceSqToPoint(center);
+        const distToCenter = threeRay.distanceSqToPoint(center);
         
         const isRot = Math.abs(rotation % Math.PI) > 0.1;
         const actualW = isRot ? dims.d : dims.w;
@@ -285,21 +285,18 @@ export function Player({ rotation }: { rotation: number }) {
              yPenalty = Math.abs(testP[1] - currentGhostY) * 20.0;
         }
 
-        // Highly sensitive to cursor: prioritize minimizing distance from the block volume to the spot the user is pointing at.
-        // Secondary priority is keeping the center close to the cursor.
         let score = distToBBXZ * 100.0 + distToCenter * 1.0 + yPenalty;
 
-        // Hysteresis: artificially lower the score of the currently placed ghost to make it "sticky"
         if (ghostPosRef.current) {
              const hx = testP[0] - ghostPosRef.current[0];
              const hy = testP[1] - ghostPosRef.current[1];
              const hz = testP[2] - ghostPosRef.current[2];
              if (hx*hx + hy*hy + hz*hz < 0.01) {
-                 score -= 15.0; // Strong stickiness
+                 score -= 15.0;
              }
         }
 
-        if (score >= minScore) return; // Early exit shortcut!
+        if (score >= minScore) return;
 
         if (checkCollision(testP, nearbyBlocks) && checkSupport(testP, nearbyBlocks)) {
             minScore = score;
@@ -333,17 +330,14 @@ export function Player({ rotation }: { rotation: number }) {
     if (ghostPos && ghostRef.current) {
         const target = new THREE.Vector3(...ghostPos);
         
-        // If the target is very far away (e.g. cross map jump), snap immediately
         if (visualGhostPos.current.distanceTo(target) > 5) {
             visualGhostPos.current.copy(target);
         } else {
-            // Smoothly interpolate for a high-quality feel
             visualGhostPos.current.lerp(target, 0.4 * (60 * delta));
         }
 
         ghostRef.current.position.copy(visualGhostPos.current);
         
-        // Tilt the ghost slightly in the direction of movement
         const diff = target.clone().sub(visualGhostPos.current);
         ghostRef.current.rotation.x = THREE.MathUtils.lerp(ghostRef.current.rotation.x, diff.z * 0.3, 0.1);
         ghostRef.current.rotation.z = THREE.MathUtils.lerp(ghostRef.current.rotation.z, -diff.x * 0.3, 0.1);
@@ -375,25 +369,22 @@ export function Player({ rotation }: { rotation: number }) {
     const handleDelete = () => {
          const start = camera.position.clone();
          const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
-         const raycaster = new THREE.Raycaster(start, dir, 0, 10);
-         const intersects = raycaster.intersectObjects(scene.children, true);
          
-         const hit = intersects.find((i: any) => {
-             let obj = i.object;
-             while (obj) {
-                 if (obj.userData?.isGhost || obj.userData?.isPlayer) return false;
-                 obj = obj.parent;
-             }
-             return true;
-         });
+         const ray = new rapier.Ray(start, dir);
+         // Filter out player collider
+         const playerCollider = ref.current?.collider(0);
+         const hit = world.castRay(
+             ray, 
+             10, 
+             true, 
+             undefined, 
+             undefined, 
+             playerCollider
+         );
 
-         if (hit) {
-            let obj = hit.object;
-            let id = null;
-            while (obj && !id) {
-                if (obj.userData?.id) id = obj.userData.id;
-                obj = obj.parent;
-            }
+         if (hit && hit.collider) {
+            const body = hit.collider.parent();
+            const id = (body as any)?.userData?.id;
             if (id) {
                 removeBlock(id);
                 playPlopSound();
@@ -402,7 +393,6 @@ export function Player({ rotation }: { rotation: number }) {
     };
 
     const handleMouseDown = (e: MouseEvent) => {
-      // Allow bypass for custom events
       if (e.type === 'mousedown' && e.isTrusted && !document.pointerLockElement) return;
 
       if (e.button === 0) {
@@ -420,7 +410,7 @@ export function Player({ rotation }: { rotation: number }) {
        window.removeEventListener('mobile-place', handlePlace);
        window.removeEventListener('mobile-delete', handleDelete);
     };
-  }, [camera, scene, selectedType, selectedColor, rotation, addBlock, removeBlock, dims.w, dims.d, height]);
+  }, [camera, scene, selectedType, selectedColor, rotation, addBlock, removeBlock, dims.w, dims.d, height, rapier, world]);
 
   return (
     <>
@@ -460,3 +450,4 @@ export function Player({ rotation }: { rotation: number }) {
     </>
   );
 }
+
