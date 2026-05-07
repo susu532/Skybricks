@@ -370,21 +370,25 @@ export function Player({ rotation }: { rotation: number }) {
          const start = camera.position.clone();
          const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
          
-         const ray = new rapier.Ray(start, dir);
-         // Filter out player collider
-         const playerCollider = ref.current?.collider(0);
-         const hit = world.castRay(
-             ray, 
-             10, 
-             true, 
-             undefined, 
-             undefined, 
-             playerCollider
-         );
+         const raycaster = new THREE.Raycaster(start, dir, 0, 10);
+         const intersects = raycaster.intersectObjects(scene.children, true);
+         
+         const hit = intersects.find((i: any) => {
+             let obj = i.object;
+             while (obj) {
+                 if (obj.userData?.isGhost || obj.userData?.isPlayer) return false;
+                 obj = obj.parent;
+             }
+             return true;
+         });
 
-         if (hit && hit.collider) {
-            const body = hit.collider.parent();
-            const id = (body as any)?.userData?.id;
+         if (hit) {
+            let obj = hit.object;
+            let id = null;
+            while (obj && !id) {
+                if (obj.userData?.id) id = obj.userData.id;
+                obj = obj.parent;
+            }
             if (id) {
                 removeBlock(id);
                 playPlopSound();
