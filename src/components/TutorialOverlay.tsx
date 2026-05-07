@@ -174,6 +174,15 @@ export function TutorialOverlay() {
     }
   };
 
+  const handleGameplayStart = () => {
+    try {
+      const cg = (window as any).CrazyGames;
+      if (cg && cg.SDK && cg.SDK.game && typeof cg.SDK.game.gameplayStart === 'function') {
+        cg.SDK.game.gameplayStart();
+      }
+    } catch (e) {}
+  };
+
   return (
     <AnimatePresence mode="wait">
       {(step === 0 || step === 10) ? (
@@ -212,6 +221,7 @@ export function TutorialOverlay() {
                   initialColor.current = useStore.getState().selectedColor;
                   initialType.current = useStore.getState().selectedType;
                   requestLock();
+                  handleGameplayStart();
                 } else {
                   setHasSeenTutorial(true);
                   requestLock();
@@ -229,6 +239,7 @@ export function TutorialOverlay() {
                 onClick={() => {
                   setHasSeenTutorial(true);
                   requestLock();
+                  handleGameplayStart();
                 }}
                 className="mt-4 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors tracking-wide uppercase"
               >

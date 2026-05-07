@@ -60,9 +60,9 @@ export default function App() {
     setStarted(true);
 
     const isMobile = useStore.getState().isMobile;
-    if (isMobile) {
-      try {
-        const el = document.documentElement as any;
+    try {
+      const el = document.documentElement as any;
+      if (isMobile) {
         if (el.requestFullscreen) {
           await el.requestFullscreen();
         } else if (el.webkitRequestFullscreen) {
@@ -75,17 +75,10 @@ export default function App() {
         if (navScreen.orientation && navScreen.orientation.lock) {
           await navScreen.orientation.lock('landscape');
         }
-      } catch (err) {
-        console.warn('Could not request fullscreen or lock orientation:', err);
       }
+    } catch (err) {
+      console.warn('Could not request fullscreen or lock orientation:', err);
     }
-
-    try {
-      const cg = (window as any).CrazyGames;
-      if (cg && cg.SDK && cg.SDK.game && typeof cg.SDK.game.gameplayStart === 'function') {
-          cg.SDK.game.gameplayStart();
-      }
-    } catch (e) {}
   };
 
   if (!started) {
