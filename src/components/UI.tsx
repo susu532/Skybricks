@@ -461,35 +461,21 @@ export function UI() {
 
         {/* Top Right Controls */}
         <div className="pointer-events-auto flex flex-col items-end gap-2">
-          {/* Eye Toggle (Mobile) */}
+          {/* Mobile Menu Toggle */}
           {isMobile && (
             <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
               onClick={() => {
-                 setUiHidden((prev: boolean) => !prev);
-                 playSelectSound();
+                 setMenuOpen(!menuOpen);
+                 window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
               }}
-              className={`p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700 transition-opacity ${(hasPointerLock && !isMobile) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-              title={uiHidden ? 'Show UI' : 'Hide UI'}
+              className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700"
             >
-              {uiHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           )}
 
           {!uiHidden && (
             <>
-              {/* Mobile Menu Toggle */}
-              {isMobile && (
-                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                  onClick={() => {
-                     setMenuOpen(!menuOpen);
-                     window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
-                  }}
-                  className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700"
-                >
-                  {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-                </button>
-              )}
-
               {/* Action Buttons Panel */}
               <div className={`flex flex-col gap-2 items-end transition-all origin-top-right ${isMobile && !menuOpen ? 'scale-0 opacity-0 absolute -z-10' : 'scale-100 opacity-100 relative z-10'} ${(hasPointerLock && !isMobile) ? 'opacity-0 scale-95 pointer-events-none' : ''}`}>
                 
@@ -562,6 +548,21 @@ export function UI() {
           </div>
             </>
           )}
+
+          {/* Eye Toggle (Mobile) - Under menu section */}
+          {isMobile && (
+            <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+              onClick={() => {
+                 setUiHidden((prev: boolean) => !prev);
+                 playSelectSound();
+              }}
+              className={`p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700 transition-opacity ${(hasPointerLock && !isMobile) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              title={uiHidden ? 'Show UI' : 'Hide UI'}
+            >
+              {uiHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            </button>
+          )}
+
         </div>
       </div>
 
@@ -605,7 +606,7 @@ export function UI() {
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${(!isMobile || uiHidden) ? 'hidden' : ''}`}>
           
           {/* Left D-Pad */}
-          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[180px] left-4 landscape:left-12 sm:left-12 pointer-events-none" style={{ left: 'max(1rem, env(safe-area-inset-left))' }}>
+          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] left-4 landscape:left-12 sm:left-12 pointer-events-none" style={{ left: 'max(1rem, env(safe-area-inset-left))' }}>
             <div className="flex flex-col items-center gap-1">
               <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                   onContextMenu={(e) => e.preventDefault()}
@@ -613,8 +614,8 @@ export function UI() {
                   onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
                   onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
                   onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                  <ArrowUp className="w-6 h-6 sm:w-7 sm:h-7" />
+                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                  <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7" />
               </button>
               <div className="flex gap-1">
                 <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
@@ -623,18 +624,18 @@ export function UI() {
                     onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
                     onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
                     onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                    <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                    <ArrowLeft className="w-5 h-5 sm:w-7 sm:h-7" />
                 </button>
-                <div className="w-14 h-12 sm:w-16 sm:h-14 bg-black/10 rounded-xl border border-white/10" />
+                <div className="w-12 h-10 sm:w-16 sm:h-14 bg-black/10 rounded-xl border border-white/10" />
                 <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                     onContextMenu={(e) => e.preventDefault()}
                     onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
                     onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
                     onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
                     onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                    <ArrowRight className="w-6 h-6 sm:w-7 sm:h-7" />
+                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                    <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7" />
                 </button>
               </div>
               <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
@@ -643,14 +644,14 @@ export function UI() {
                   onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
                   onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
                   onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                  <ArrowDown className="w-6 h-6 sm:w-7 sm:h-7" />
+                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                  <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7" />
               </button>
             </div>
           </div>
 
           {/* Right Actions */}
-          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[180px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
+          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
               <div className="pointer-events-auto flex items-end gap-1.5 sm:gap-2">
                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
@@ -659,8 +660,8 @@ export function UI() {
                         onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
                         onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
                         onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        className="w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
-                        <ArrowUp className="w-6 h-6" />
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
+                        <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
@@ -668,16 +669,16 @@ export function UI() {
                         onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
                         onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
                         onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        className="w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
-                        <ArrowDown className="w-6 h-6" />
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
+                        <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                  </div>
                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
                         onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
-                        className="w-14 h-12 sm:w-16 sm:h-14 bg-rose-500/90 rounded-xl flex items-center justify-center active:bg-rose-600 shadow-md text-white touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
-                        <Trash2 className="w-6 h-6" />
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-rose-500/90 rounded-xl flex items-center justify-center active:bg-rose-600 shadow-md text-white touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
+                        <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
@@ -685,16 +686,16 @@ export function UI() {
                         onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
                         onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
                         onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                        className="w-14 h-12 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
-                        <RotateCcw className="w-6 h-6 font-bold" />
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
+                        <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 font-bold" />
                     </button>
                  </div>
                  <div className="flex flex-col justify-end">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
                         onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
-                        className="w-20 h-20 sm:w-24 sm:h-24 bg-pink-500 rounded-2xl flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 border-2 border-white/30 backdrop-blur-sm mb-0.5">
-                        <Plus className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={3} />
+                        className="w-16 h-16 sm:w-24 sm:h-24 bg-pink-500 rounded-2xl flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 border-2 border-white/30 backdrop-blur-sm mb-0.5">
+                        <Plus className="w-8 h-8 sm:w-12 sm:h-12" strokeWidth={3} />
                     </button>
                  </div>
               </div>
@@ -737,7 +738,7 @@ export function UI() {
                         {CATEGORIZED_TYPES[activeCategory].map((t) => (
                           <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={t.type}
                             onClick={() => handleTypeSelect(t.type)}
-                            className={`relative shrink-0 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg transition-all snap-center ${
+                            className={`relative shrink-0 w-9 h-9 sm:w-12 sm:h-12 portrait:w-9 portrait:h-9 flex items-center justify-center rounded-lg transition-all snap-center ${
                               selectedType === t.type
                                 ? 'bg-white shadow-sm border border-pink-300 ring-2 ring-pink-500/20'
                                 : 'bg-transparent hover:bg-black/5'
@@ -746,7 +747,7 @@ export function UI() {
                             {isFurniture(t.type) && !furnitureUnlocked && (
                               <Lock className="absolute top-0.5 right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 text-slate-400 opacity-60 pointer-events-none" />
                             )}
-                            <div className="scale-[0.55] sm:scale-[0.65] flex items-center justify-center w-full h-full pointer-events-none">
+                            <div className="scale-[0.45] sm:scale-[0.65] portrait:scale-[0.45] flex items-center justify-center w-full h-full pointer-events-none">
                               <ModelIcon type={t.type} selected={selectedType === t.type} />
                             </div>
                           </button>
@@ -762,7 +763,7 @@ export function UI() {
                       {COLORS.map((c) => (
                         <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={c.hex}
                           onClick={() => { setColor(c.hex); playSelectSound(); }}
-                          className={`flex-shrink-0 snap-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
+                          className={`flex-shrink-0 snap-center w-7 h-7 sm:w-10 sm:h-10 portrait:w-7 portrait:h-7 rounded-full border border-white/40 transition-transform shadow-sm ${
                               selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
                           }`}
                           style={{ backgroundColor: c.hex }}

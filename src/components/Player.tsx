@@ -31,6 +31,8 @@ export function Player({ rotation }: { rotation: number }) {
   const addBlock = useStore((state) => state.addBlock);
   const removeBlock = useStore((state) => state.removeBlock);
   const uiHidden = useStore((state) => state.uiHidden);
+  const isMobile = useStore((state) => state.isMobile);
+  const performanceMode = useStore((state) => state.performanceMode);
   
   const dims = BLOCK_DIMENSIONS[selectedType] || { w: 1, d: 1, shape: 'brick' as const };
   const height = getBlockHeight(dims.shape, dims.isPlate);
@@ -123,7 +125,8 @@ export function Player({ rotation }: { rotation: number }) {
   };
 
   const searchPattern = useMemo(() => {
-    if (useStore.getState().performanceMode) {
+    const isPerf = performanceMode || isMobile;
+    if (isPerf) {
         const offsets: [number, number, number][] = [];
         const range = 1;
         const yRange = 1; 
@@ -158,7 +161,7 @@ export function Player({ rotation }: { rotation: number }) {
         const dB = b[0]*b[0] + b[1]*b[1] + b[2]*b[2];
         return dA - dB;
     });
-  }, [height]);
+  }, [height, performanceMode, isMobile]);
 
   const lastGhostUpdate = useRef(0);
 
@@ -216,7 +219,7 @@ export function Player({ rotation }: { rotation: number }) {
     camera.position.set(pos.x, pos.y + 1.2, pos.z);
 
     const nowTime = performance.now();
-    const fpsLimit = useStore.getState().performanceMode ? 66 : 0;
+    const fpsLimit = (performanceMode || isMobile) ? 66 : 0;
     if (nowTime - lastGhostUpdate.current < fpsLimit) return;
     lastGhostUpdate.current = nowTime;
 
@@ -323,10 +326,10 @@ export function Player({ rotation }: { rotation: number }) {
         if (prev && prev[0] === targetPos![0] && prev[1] === targetPos![1] && prev[2] === targetPos![2]) return prev;
         return targetPos;
       });
-      setIsGhostInvalid(false);
+      setIsGhostInvalid(prev => prev === false ? prev : false);
     } else {
-      setGhostPos(prev => prev === null ? null : null);
-      setIsGhostInvalid(false);
+      setGhostPos(prev => prev === null ? prev : null);
+      setIsGhostInvalid(prev => prev === false ? prev : false);
     }
   });
 
