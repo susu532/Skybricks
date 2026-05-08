@@ -465,13 +465,27 @@ export function UI() {
           {isMobile && (
             <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
               onClick={() => {
+                 if (uiHidden) setUiHidden(false);
                  setMenuOpen(!menuOpen);
                  window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
               }}
-              className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700"
+              className={`p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700 transition-opacity ${(hasPointerLock && !isMobile) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
             >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {menuOpen && !uiHidden ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
+          )}
+
+          {isMobile && !uiHidden && !furnitureUnlocked && (
+             <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                 onClick={handleUnlockFurniture}
+                 className="group relative flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
+             >
+                 <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                 <Lock className="w-4 h-4 text-white shadow-sm" />
+                 <span className="font-extrabold text-xs tracking-wide flex items-center gap-1 text-shadow-sm whitespace-nowrap">
+                     Unlock Furniture
+                 </span>
+             </button>
           )}
 
           {!uiHidden && (
@@ -479,88 +493,94 @@ export function UI() {
               {/* Action Buttons Panel */}
               <div className={`flex flex-col gap-2 items-end transition-all origin-top-right ${isMobile && !menuOpen ? 'scale-0 opacity-0 absolute -z-10' : 'scale-100 opacity-100 relative z-10'} ${(hasPointerLock && !isMobile) ? 'opacity-0 scale-95 pointer-events-none' : ''}`}>
                 
-                {!furnitureUnlocked && (
+                {!isMobile && !furnitureUnlocked && (
                 <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                     onClick={handleUnlockFurniture}
                     className="group relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
                 >
                     <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
                     <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-white shadow-sm" />
-                    <span className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1 text-shadow-sm">
+                    <span className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1 text-shadow-sm whitespace-nowrap">
                         Unlock Furniture
                     </span>
                 </button>
-            )}
+                )}
 
-            <div className="flex gap-2 sm:gap-2 flex-wrap items-center justify-end max-w-[200px] sm:max-w-none bg-white/80 sm:bg-transparent p-2 sm:p-0 rounded-2xl sm:rounded-none backdrop-blur-md sm:backdrop-blur-none border sm:border-none border-white/50">
-              
-              {/* Undo / Redo in top bar on Mobile for better space */}
-              {isMobile && (
-                <>
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => undo()} disabled={history.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(history.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-rose-500 border-rose-100 hover:scale-105'}`}>
-                    <Undo2 className="w-4 h-4" />
-                  </button>
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => redo()} disabled={redoStack.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(redoStack.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-emerald-500 border-emerald-100 hover:scale-105'}`}>
-                    <Redo2 className="w-4 h-4" />
-                  </button>
-                  <div className="w-px h-6 bg-slate-300 mx-1"></div>
-                </>
-              )}
+                <div className="flex gap-2 sm:gap-2 flex-wrap items-center justify-end max-w-[200px] sm:max-w-none bg-white/80 sm:bg-transparent p-2 sm:p-0 rounded-2xl sm:rounded-none backdrop-blur-md sm:backdrop-blur-none border sm:border-none border-white/50">
+                  
+                  {/* Undo / Redo in top bar on Mobile for better space */}
+                  {isMobile && (
+                    <>
+                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => undo()} disabled={history.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(history.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-rose-500 border-rose-100 hover:scale-105'}`}>
+                        <Undo2 className="w-4 h-4" />
+                      </button>
+                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => redo()} disabled={redoStack.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(redoStack.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-emerald-500 border-emerald-100 hover:scale-105'}`}>
+                        <Redo2 className="w-4 h-4" />
+                      </button>
+                      <div className="w-px h-6 bg-slate-300 mx-1"></div>
+                    </>
+                  )}
 
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                  onClick={() => { togglePerformanceMode(); playSelectSound(); }} 
-                  className={`p-2.5 sm:p-3 rounded-full shadow-md sm:shadow-lg border transition-all flex items-center justify-center ${performanceMode ? 'bg-amber-100/90 text-amber-600 border-amber-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-100'}`}
-                  title={performanceMode ? "Disable Performance Mode" : "Enable Performance Mode (Low Graphics)"}
-              >
-                  {performanceMode ? <ZapOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
-              </button>
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
-                      try {
-                          const el = document.documentElement as any;
-                          if (!document.fullscreenElement) {
-                              if (el.requestFullscreen) el.requestFullscreen();
-                              else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-                              else if (el.msRequestFullscreen) el.msRequestFullscreen();
-                              
-                              const navScreen = screen as any;
-                              if (navScreen.orientation && navScreen.orientation.lock) {
-                                  navScreen.orientation.lock('landscape').catch(() => {});
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                      onClick={() => { togglePerformanceMode(); playSelectSound(); }} 
+                      className={`p-2.5 sm:p-3 rounded-full shadow-md sm:shadow-lg border transition-all flex items-center justify-center ${performanceMode ? 'bg-amber-100/90 text-amber-600 border-amber-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-100'}`}
+                      title={performanceMode ? "Disable Performance Mode" : "Enable Performance Mode (Low Graphics)"}
+                  >
+                      {performanceMode ? <ZapOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  </button>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
+                          try {
+                              const el = document.documentElement as any;
+                              if (!document.fullscreenElement) {
+                                  if (el.requestFullscreen) el.requestFullscreen();
+                                  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                                  else if (el.msRequestFullscreen) el.msRequestFullscreen();
+                                  
+                                  const navScreen = screen as any;
+                                  if (navScreen.orientation && navScreen.orientation.lock) {
+                                      navScreen.orientation.lock('landscape').catch(() => {});
+                                  }
+                              } else {
+                                  if (document.exitFullscreen) document.exitFullscreen();
                               }
-                          } else {
-                              if (document.exitFullscreen) document.exitFullscreen();
-                          }
-                          playSelectSound();
-                      } catch(e) {}
-                  }}
-                  className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all flex items-center justify-center"
-                  title="Toggle Fullscreen"
-              >
-                  <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-              <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleLoad} />
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => fileInputRef.current?.click()} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
-                  <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={handleSave} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
-                  <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
-          </div>
-            </>
-          )}
+                              playSelectSound();
+                          } catch(e) {}
+                      }}
+                      className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all flex items-center justify-center"
+                      title="Toggle Fullscreen"
+                  >
+                      <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
 
-          {/* Eye Toggle (Mobile) - Under menu section */}
-          {isMobile && (
-            <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-              onClick={() => {
-                 setUiHidden((prev: boolean) => !prev);
-                 playSelectSound();
-              }}
-              className={`p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700 transition-opacity ${(hasPointerLock && !isMobile) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-              title={uiHidden ? 'Show UI' : 'Hide UI'}
-            >
-              {uiHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
+                  {/* Eye Toggle (Mobile) - inside menu section */}
+                  {isMobile && (
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                      onClick={() => {
+                         setUiHidden(true);
+                         setMenuOpen(false);
+                         playSelectSound();
+                      }}
+                      className="p-2.5 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md border border-slate-100 transition-all flex items-center justify-center"
+                      title={'Hide UI'}
+                    >
+                      <EyeOff className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  {!isMobile && (
+                    <>
+                      <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleLoad} />
+                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => fileInputRef.current?.click()} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
+                          <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={handleSave} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
+                          <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </>
           )}
 
         </div>
