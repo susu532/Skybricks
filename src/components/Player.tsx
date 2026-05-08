@@ -20,6 +20,8 @@ export function Player({ rotation }: { rotation: number }) {
   const movement = useKeyboard();
   const { camera, scene } = useThree();
   const { world, rapier } = useRapier();
+  const [ghostPos, setGhostPos] = useState<[number, number, number] | null>(null);
+  const [isGhostInvalid, setIsGhostInvalid] = useState(false);
   const [isFlying, setIsFlying] = useState(false);
   const lastJumpPress = useRef(0);
   const wasJump = useRef(false);
@@ -320,28 +322,23 @@ export function Player({ rotation }: { rotation: number }) {
     }
 
     if (targetPos) {
-       ghostPosRef.current = targetPos;
-       isGhostInvalidRef.current = false;
+      setGhostPos(prev => {
+        if (prev && prev[0] === targetPos![0] && prev[1] === targetPos![1] && prev[2] === targetPos![2]) return prev;
+        return targetPos;
+      });
+      setIsGhostInvalid(prev => prev === false ? prev : false);
     } else {
-       ghostPosRef.current = null;
-       isGhostInvalidRef.current = false;
+      setGhostPos(prev => prev === null ? prev : null);
+      setIsGhostInvalid(prev => prev === false ? prev : false);
     }
   });
 
   const visualGhostPos = useRef(new THREE.Vector3());
   const ghostRef = useRef<THREE.Group>(null);
-  const ghostPosRef = useRef<[number, number, number] | null>(null);
-  const isGhostInvalidRef = useRef(false);
 
   useFrame((state, delta) => {
-    if (ghostRef.current) {
-        if (!ghostPosRef.current || uiHidden) {
-            ghostRef.current.visible = false;
-            return;
-        }
-        ghostRef.current.visible = true;
-
-        const target = new THREE.Vector3(...ghostPosRef.current);
+    if (ghostPos && ghostRef.current) {
+        const target = new THREE.Vector3(...ghostPos);
         
         if (visualGhostPos.current.distanceTo(target) > 5) {
             visualGhostPos.current.copy(target);
@@ -356,6 +353,13 @@ export function Player({ rotation }: { rotation: number }) {
         ghostRef.current.rotation.z = THREE.MathUtils.lerp(ghostRef.current.rotation.z, -diff.x * 0.3, 0.1);
     }
   });
+
+  const ghostPosRef = useRef<[number, number, number] | null>(null);
+  const isGhostInvalidRef = useRef(false);
+  useEffect(() => {
+    ghostPosRef.current = ghostPos;
+    isGhostInvalidRef.current = isGhostInvalid;
+  }, [ghostPos, isGhostInvalid]);
 
   useEffect(() => {
     const handlePlace = () => {
@@ -440,21 +444,23 @@ export function Player({ rotation }: { rotation: number }) {
         </mesh>
       </RigidBody>
 
-      <group ref={ghostRef} rotation={[0, rotation, 0]} visible={false}>
-        <Brick
-          width={dims.w}
-          depth={dims.d}
-          isPlate={dims.isPlate}
-          shape={dims.shape}
-          position={[0, 0.02, 0]} 
-          rotation={[0, 0, 0]}
-          color={selectedColor}
-          isDynamic={false}
-          isGhost={true}
-          isInvalid={false}
-          performanceMode={performanceMode || isMobile}
-        />
-      </group>
+      {ghostPos && !uiHidden && (
+        <group ref={ghostRef} rotation={[0, rotation, 0]}>
+            <Brick
+              width={dims.w}
+              depth={dims.d}
+              isPlate={dims.isPlate}
+              shape={dims.shape}
+              position={[0, 0.02, 0]} 
+              rotation={[0, 0, 0]}
+              color={selectedColor}
+              isDynamic={false}
+              isGhost={true}
+              isInvalid={isGhostInvalid}
+              performanceMode={true}
+            />
+        </group>
+      )}
     </>
   );
 }

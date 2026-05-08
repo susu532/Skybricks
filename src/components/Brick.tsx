@@ -100,26 +100,16 @@ export function getBrickMaterial(color: string, isGhost: boolean = false, isInva
   const cache = isGhost ? ghostMaterialCache : materialCache;
   if (!cache[cacheKey]) {
     if (isGhost) {
-      if (performanceMode) {
-        cache[cacheKey] = new THREE.MeshBasicMaterial({
-          color: isInvalid ? '#ff0000' : color,
-          transparent: true,
-          opacity: isInvalid ? 0.4 : 0.6,
-          depthWrite: false,
-          wireframe: true,
-        });
-      } else {
-        cache[cacheKey] = new THREE.MeshStandardMaterial({
-          color: isInvalid ? '#ff0000' : color,
-          roughness: 0.1,
-          metalness: 0.0,
-          transparent: true,
-          opacity: isInvalid ? 0.4 : 0.6,
-          depthWrite: false,
-          emissive: isInvalid ? '#ff0000' : color,
-          emissiveIntensity: 0.5,
-        });
-      }
+      cache[cacheKey] = new THREE.MeshStandardMaterial({
+        color: isInvalid ? '#ff0000' : color,
+        roughness: 0.1,
+        metalness: 0,
+        transparent: true,
+        opacity: isInvalid ? 0.4 : 0.6,
+        depthWrite: false,
+        emissive: isInvalid ? '#ff0000' : color,
+        emissiveIntensity: 0.5,
+      });
     } else {
       if (performanceMode) {
         cache[cacheKey] = new THREE.MeshStandardMaterial({
@@ -151,12 +141,10 @@ function GhostAnimator({ groupRef, material, isInvalid }: { groupRef: any, mater
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 2) * 0.02;
-      if (material && material.emissiveIntensity !== undefined) {
+      if (material) {
         material.emissiveIntensity = 0.5 + Math.sin(state.clock.elapsedTime * 6) * 0.3;
         if (isInvalid) {
           material.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 8) * 0.2;
-        } else {
-          material.opacity = 0.6;
         }
       }
     }
