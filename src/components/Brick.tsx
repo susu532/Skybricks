@@ -1,5 +1,5 @@
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import { useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { playClackSound } from '../audio';
@@ -152,7 +152,7 @@ function GhostAnimator({ groupRef, material, isInvalid }: { groupRef: any, mater
   return null;
 }
 
-export function Brick({ width, depth, isPlate, position, rotation, color, isDynamic, id, isGhost, isInvalid, shape, performanceMode }: any) {
+export const Brick = React.memo(function Brick({ width, depth, isPlate, position, rotation, color, isDynamic, id, isGhost, isInvalid, shape, performanceMode }: any) {
     let height = getBlockHeight(shape, isPlate);
 
     const material = getBrickMaterial(color, isGhost, isInvalid, performanceMode);
@@ -908,4 +908,4 @@ export function Brick({ width, depth, isPlate, position, rotation, color, isDyna
             {content}
         </RigidBody>
     );
-}
+});

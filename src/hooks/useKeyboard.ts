@@ -34,11 +34,30 @@ export function useKeyboard() {
       }
     };
 
+    const handleClear = () => {
+       setMovement({
+          forward: false,
+          backward: false,
+          left: false,
+          right: false,
+          jump: false,
+          shift: false,
+       });
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleClear);
+    document.addEventListener('pointerlockchange', () => {
+        if (!document.pointerLockElement) {
+           handleClear();
+        }
+    });
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleClear);
     };
   }, []);
 

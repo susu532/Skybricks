@@ -1,4 +1,4 @@
-import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2, Menu, X, Maximize } from 'lucide-react';
+import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2, Menu, X, Maximize, Eye, EyeOff } from 'lucide-react';
 import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
@@ -218,28 +218,28 @@ const CATEGORIZED_TYPES = {
 };
 
 export function UI() {
-  const {
-    selectedColor,
-    setColor,
-    selectedType,
-    setType,
-    performanceMode,
-    togglePerformanceMode,
-    clearBlocks,
-    blocks,
-    history,
-    redoStack,
-    undo,
-    redo,
-    setBlocks,
-    isMobile,
-    furnitureUnlocked,
-    unlockFurniture
-  } = useStore();
+  const selectedColor = useStore((state) => state.selectedColor);
+  const setColor = useStore((state) => state.setColor);
+  const selectedType = useStore((state) => state.selectedType);
+  const setType = useStore((state) => state.setType);
+  const performanceMode = useStore((state) => state.performanceMode);
+  const togglePerformanceMode = useStore((state) => state.togglePerformanceMode);
+  const clearBlocks = useStore((state) => state.clearBlocks);
+  const history = useStore((state) => state.history);
+  const redoStack = useStore((state) => state.redoStack);
+  const undo = useStore((state) => state.undo);
+  const redo = useStore((state) => state.redo);
+  const setBlocks = useStore((state) => state.setBlocks);
+  const isMobile = useStore((state) => state.isMobile);
+  const furnitureUnlocked = useStore((state) => state.furnitureUnlocked);
+  const unlockFurniture = useStore((state) => state.unlockFurniture);
+  const uiHidden = useStore((state) => state.uiHidden);
+  const setUiHidden = useStore((state) => state.setUiHidden);
 
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<'bricks' | 'plates' | 'furniture'>('bricks');
+  const [mobileTab, setMobileTab] = useState<'bricks' | 'colors'>('bricks');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync category with selected type
@@ -368,13 +368,13 @@ export function UI() {
   }, [hasPointerLock, isMobile, setType, setColor, undo, redo, selectedColor]);
 
   const handleSave = useCallback(() => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(blocks));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(useStore.getState().blocks));
     const dlAnchorElem = document.createElement('a');
     dlAnchorElem.setAttribute("href", dataStr);
     dlAnchorElem.setAttribute("download", "skybricks_save.json");
     dlAnchorElem.click();
     setMenuOpen(false);
-  }, [blocks]);
+  }, []);
 
   const handleLoad = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -436,10 +436,10 @@ export function UI() {
 
   return (
     <div className="absolute top-0 left-0 w-full h-full pointer-events-none flex flex-col justify-between overflow-hidden font-sans">
-      <TutorialOverlay />
+      {!uiHidden && <TutorialOverlay />}
       
       {/* Starting Overlay if not locked (Desktop only) */}
-      {(!hasPointerLock && !isMobile) && (
+      {(!hasPointerLock && !isMobile && !uiHidden) && (
         <div className="absolute inset-x-0 top-1/4 pointer-events-none flex justify-center z-[60] p-4 transition-opacity animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="bg-white/95 backdrop-blur-md text-pink-500 font-bold py-3 px-8 rounded-full shadow-2xl border border-pink-100 text-xl tracking-tight pointer-events-none animate-pulse">
             Click anywhere to resume
@@ -455,30 +455,46 @@ export function UI() {
       {/* Top Header - Title and Menus */}
       <div className="flex justify-between items-start p-2 sm:p-4 z-50 pointer-events-none relative transition-transform">
         {/* Title */}
-        <div className={`font-black text-2xl sm:text-3xl md:text-4xl tracking-tighter drop-shadow-md flex items-center bg-white/40 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none px-3 py-1 sm:px-0 sm:py-0 rounded-2xl sm:rounded-none pointer-events-auto transition-opacity ${(hasPointerLock && !isMobile) ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`} style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div className={`font-black text-2xl sm:text-3xl md:text-4xl tracking-tighter drop-shadow-md flex items-center bg-white/40 sm:bg-transparent backdrop-blur-md sm:backdrop-blur-none px-3 py-1 sm:px-0 sm:py-0 rounded-2xl sm:rounded-none transition-opacity ${(!uiHidden) ? 'pointer-events-auto' : ''} ${((hasPointerLock && !isMobile) || uiHidden) ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'}`} style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
           <span className="text-[#5FA6FF]">Sky</span><span className="text-[#FA31A7]">Bricks</span>
         </div>
 
         {/* Top Right Controls */}
         <div className="pointer-events-auto flex flex-col items-end gap-2">
-          {/* Mobile Menu Toggle */}
+          {/* Eye Toggle (Mobile) */}
           {isMobile && (
-            <button 
+            <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
               onClick={() => {
-                 setMenuOpen(!menuOpen);
-                 window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
+                 setUiHidden((prev: boolean) => !prev);
+                 playSelectSound();
               }}
-              className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700"
+              className={`p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700 transition-opacity ${(hasPointerLock && !isMobile) ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+              title={uiHidden ? 'Show UI' : 'Hide UI'}
             >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {uiHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           )}
 
-          {/* Action Buttons Panel */}
-          <div className={`flex flex-col gap-2 items-end transition-all origin-top-right ${isMobile && !menuOpen ? 'scale-0 opacity-0 absolute -z-10' : 'scale-100 opacity-100 relative z-10'} ${(hasPointerLock && !isMobile) ? 'opacity-0 scale-95 pointer-events-none' : ''}`}>
-            
-            {!furnitureUnlocked && (
-                <button 
+          {!uiHidden && (
+            <>
+              {/* Mobile Menu Toggle */}
+              {isMobile && (
+                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                  onClick={() => {
+                     setMenuOpen(!menuOpen);
+                     window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
+                  }}
+                  className="p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-slate-200/50 text-slate-700"
+                >
+                  {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                </button>
+              )}
+
+              {/* Action Buttons Panel */}
+              <div className={`flex flex-col gap-2 items-end transition-all origin-top-right ${isMobile && !menuOpen ? 'scale-0 opacity-0 absolute -z-10' : 'scale-100 opacity-100 relative z-10'} ${(hasPointerLock && !isMobile) ? 'opacity-0 scale-95 pointer-events-none' : ''}`}>
+                
+                {!furnitureUnlocked && (
+                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                     onClick={handleUnlockFurniture}
                     className="group relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
                 >
@@ -495,25 +511,24 @@ export function UI() {
               {/* Undo / Redo in top bar on Mobile for better space */}
               {isMobile && (
                 <>
-                  <button onClick={() => undo()} disabled={history.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(history.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-rose-500 border-rose-100 hover:scale-105'}`}>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => undo()} disabled={history.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(history.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-rose-500 border-rose-100 hover:scale-105'}`}>
                     <Undo2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => redo()} disabled={redoStack.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(redoStack.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-emerald-500 border-emerald-100 hover:scale-105'}`}>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => redo()} disabled={redoStack.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(redoStack.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-emerald-500 border-emerald-100 hover:scale-105'}`}>
                     <Redo2 className="w-4 h-4" />
                   </button>
                   <div className="w-px h-6 bg-slate-300 mx-1"></div>
                 </>
               )}
 
-              <button 
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                   onClick={() => { togglePerformanceMode(); playSelectSound(); }} 
                   className={`p-2.5 sm:p-3 rounded-full shadow-md sm:shadow-lg border transition-all flex items-center justify-center ${performanceMode ? 'bg-amber-100/90 text-amber-600 border-amber-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-100'}`}
                   title={performanceMode ? "Disable Performance Mode" : "Enable Performance Mode (Low Graphics)"}
               >
                   {performanceMode ? <ZapOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
-              <button
-                  onClick={() => {
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
                       try {
                           const el = document.documentElement as any;
                           if (!document.fullscreenElement) {
@@ -537,25 +552,26 @@ export function UI() {
                   <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleLoad} />
-              <button onClick={() => fileInputRef.current?.click()} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => fileInputRef.current?.click()} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
                   <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-              <button onClick={handleSave} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={handleSave} className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all">
                   <Download className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* Left Sidebar (Bricks) - Desktop Only */}
-      {!isMobile && (
+      {!isMobile && !uiHidden && (
         <div className={`absolute left-2 md:left-0 top-[12%] sm:top-[14%] md:top-1/2 md:-translate-y-1/2 p-0 sm:p-2 md:p-6 transition-all duration-300 z-40 ${(hasPointerLock && !isMobile) ? 'opacity-40 pointer-events-none translate-x-0' : 'translate-x-0 pointer-events-auto'} max-h-[50vh] sm:max-h-[50vh] portrait:max-h-[60vh] md:h-[90vh] md:max-h-none`}>
           <div className="bg-white/80 backdrop-blur-xl p-1.5 sm:p-3 md:p-3 rounded-2xl sm:rounded-3xl md:rounded-[2.5rem] shadow-xl md:shadow-2xl border border-white/50 flex flex-col gap-1 sm:gap-2 max-h-full overflow-hidden w-[50px] sm:w-[70px] md:w-auto">
             <div className="flex-1 overflow-y-auto touch-pan-y pr-1 -mr-1 space-y-1 sm:space-y-2 hide-scrollbar scroll-smooth flex flex-col items-center">
               {TYPES.map((t, index) => (
-                  <button
-                  key={t.type}
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={t.type}
                   ref={(el) => {
                     if (el && selectedType === t.type) {
                       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -586,172 +602,202 @@ export function UI() {
       {/* Bottom Area (Colors + Bricks + Action Controls + Gamepad) */}
       <>
         {/* Mobile Controls Layer */}
-        <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${!isMobile ? 'hidden' : ''}`}>
+        <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${(!isMobile || uiHidden) ? 'hidden' : ''}`}>
           
           {/* Left D-Pad */}
-          <div className="absolute bottom-28 landscape:bottom-6 portrait:bottom-[180px] left-2 landscape:left-8 sm:left-12 sm:bottom-12 pointer-events-none w-36 h-36 landscape:w-[140px] landscape:h-[140px] sm:w-48 sm:h-48 md:w-56 md:h-56 bg-black/10 rounded-full border-2 border-white/20 shadow-[inset_0_0_20px_rgba(0,0,0,0.1)] backdrop-blur-md" style={{ left: 'max(0.5rem, env(safe-area-inset-left))' }}>
-            {/* Inner thumbstick placeholder circle */}
-            <div className="absolute inset-0 m-auto w-14 h-14 landscape:w-16 landscape:h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full border-2 border-white/10 bg-white/5" />
-
-            <button 
-                onContextMenu={(e) => e.preventDefault()}
-                onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
-                onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                className="pointer-events-auto absolute top-1 sm:top-2 md:top-3 left-1/2 -translate-x-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowUp className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-            </button>
-
-            <button 
-                onContextMenu={(e) => e.preventDefault()}
-                onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
-                onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                className="pointer-events-auto absolute bottom-1 sm:bottom-2 md:bottom-3 left-1/2 -translate-x-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowDown className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-            </button>
-
-            <button 
-                onContextMenu={(e) => e.preventDefault()}
-                onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
-                onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                className="pointer-events-auto absolute left-1 sm:left-2 md:left-3 top-1/2 -translate-y-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-            </button>
-
-            <button 
-                onContextMenu={(e) => e.preventDefault()}
-                onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
-                onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                className="pointer-events-auto absolute right-1 sm:right-2 md:right-3 top-1/2 -translate-y-1/2 w-11 h-11 landscape:w-12 landscape:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700">
-                <ArrowRight className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8" />
-            </button>
+          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[180px] left-4 landscape:left-12 sm:left-12 pointer-events-none" style={{ left: 'max(1rem, env(safe-area-inset-left))' }}>
+            <div className="flex flex-col items-center gap-1">
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                  onContextMenu={(e) => e.preventDefault()}
+                  onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
+                  onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
+                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
+                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
+                  className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                  <ArrowUp className="w-6 h-6 sm:w-7 sm:h-7" />
+              </button>
+              <div className="flex gap-1">
+                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                    onContextMenu={(e) => e.preventDefault()}
+                    onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
+                    onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
+                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
+                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
+                    className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                    <ArrowLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+                </button>
+                <div className="w-14 h-12 sm:w-16 sm:h-14 bg-black/10 rounded-xl border border-white/10" />
+                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                    onContextMenu={(e) => e.preventDefault()}
+                    onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
+                    onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
+                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
+                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
+                    className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                    <ArrowRight className="w-6 h-6 sm:w-7 sm:h-7" />
+                </button>
+              </div>
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                  onContextMenu={(e) => e.preventDefault()}
+                  onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
+                  onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
+                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
+                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
+                  className="pointer-events-auto w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                  <ArrowDown className="w-6 h-6 sm:w-7 sm:h-7" />
+              </button>
+            </div>
           </div>
 
           {/* Right Actions */}
-          <div className="absolute bottom-28 landscape:bottom-6 portrait:bottom-[180px] right-2 landscape:right-8 sm:right-12 sm:bottom-12 pointer-events-none w-40 h-40 landscape:w-[180px] landscape:h-[180px] sm:w-56 sm:h-56" style={{ right: 'max(0.5rem, env(safe-area-inset-right))' }}>
-             {/* Center-ish Place button */}
-             <button 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
-                  className="pointer-events-auto absolute bottom-0 right-0 w-[4.5rem] h-[4.5rem] landscape:w-20 landscape:h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 bg-pink-500 rounded-[2.5rem] sm:rounded-[3rem] flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 z-20 border-4 border-white/30 backdrop-blur-sm">
-                  <Plus className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" strokeWidth={3} />
-              </button>
-
-              {/* Delete button (Up from Place) */}
-              <button 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
-                  className="pointer-events-auto absolute bottom-[5.5rem] landscape:bottom-[90px] sm:bottom-28 right-0 sm:right-2 w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-rose-500/90 rounded-full flex items-center justify-center active:bg-rose-600 shadow-lg text-white touch-none transition-transform active:scale-95 z-10 border-2 border-white/40 backdrop-blur-md">
-                  <Trash2 className="w-6 h-6 sm:w-7 sm:h-7" />
-              </button>
-
-              {/* Rotate button (Left from Place) */}
-              <button 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', code: 'KeyR' }))}}
-                  onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                  onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                  className="pointer-events-auto absolute bottom-0 right-[5.5rem] landscape:right-[90px] sm:right-28 w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-white/95 rounded-full flex items-center justify-center active:bg-slate-100 shadow-lg text-slate-700 touch-none transition-transform active:scale-95 z-10 border-2 border-white/40 backdrop-blur-md">
-                  <RotateCcw className="w-6 h-6 sm:w-7 sm:h-7 font-bold" />
-              </button>
-
-              {/* Up button */}
-              <button 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
-                  onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                  onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                  className="pointer-events-auto absolute bottom-[100px] landscape:bottom-[130px] sm:bottom-[160px] right-[48px] landscape:right-[60px] sm:right-[72px] w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md z-10">
-                  <ArrowUp className="w-6 h-6 sm:w-8 sm:h-8" />
-              </button>
-
-              {/* Down button */}
-              <button 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
-                  onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                  onPointerCancel={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                  className="pointer-events-auto absolute bottom-[48px] landscape:bottom-[60px] sm:bottom-[88px] right-[100px] landscape:right-[130px] sm:right-[140px] w-12 h-12 landscape:w-14 landscape:h-14 sm:w-16 sm:h-16 bg-white/90 rounded-full flex items-center justify-center active:bg-slate-100 border-2 border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md z-10">
-                  <ArrowDown className="w-6 h-6 sm:w-8 sm:h-8" />
-              </button>
+          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[180px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
+              <div className="pointer-events-auto flex items-end gap-1.5 sm:gap-2">
+                 <div className="flex flex-col gap-1.5 sm:gap-2">
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
+                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        className="w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
+                        <ArrowUp className="w-6 h-6" />
+                    </button>
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        className="w-14 h-12 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
+                        <ArrowDown className="w-6 h-6" />
+                    </button>
+                 </div>
+                 <div className="flex flex-col gap-1.5 sm:gap-2">
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
+                        className="w-14 h-12 sm:w-16 sm:h-14 bg-rose-500/90 rounded-xl flex items-center justify-center active:bg-rose-600 shadow-md text-white touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
+                        <Trash2 className="w-6 h-6" />
+                    </button>
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', code: 'KeyR' }))}}
+                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
+                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
+                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
+                        className="w-14 h-12 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
+                        <RotateCcw className="w-6 h-6 font-bold" />
+                    </button>
+                 </div>
+                 <div className="flex flex-col justify-end">
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
+                        className="w-20 h-20 sm:w-24 sm:h-24 bg-pink-500 rounded-2xl flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 border-2 border-white/30 backdrop-blur-sm mb-0.5">
+                        <Plus className="w-10 h-10 sm:w-12 sm:h-12" strokeWidth={3} />
+                    </button>
+                 </div>
+              </div>
           </div>
         </div>
 
-        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-1 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
+        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
             
-            {/* Mobile Brick Selector */}
-            {isMobile && (
-              <div className="w-full portrait:max-w-[95vw] landscape:w-auto landscape:max-w-[calc(100vw-360px)] sm:w-[500px] md:w-[600px] flex flex-col gap-1 mb-1 sm:gap-1.5 sm:mb-1.5 pointer-events-auto mx-auto">
-                {/* Category Selector */}
-                <div className="flex items-center w-full justify-between gap-1 sm:gap-2 bg-white/60 backdrop-blur-md p-1 sm:p-1.5 rounded-2xl border border-white/50 overflow-x-auto touch-pan-x hide-scrollbar">
-                  {BRICK_CATEGORIES.map((cat) => {
-                    const CategoryIcon = cat.icon;
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.id as any)}
-                        className={`flex-1 shrink-0 flex items-center justify-center gap-1.5 py-1 sm:py-1.5 rounded-xl transition-all min-w-[60px] sm:min-w-[70px] ${activeCategory === cat.id ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-600'}`}
-                      >
-                        <CategoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                        <span className="text-[9px] sm:text-[10px] md:text-xs font-bold uppercase tracking-wider hidden portrait:inline-block landscape:inline-block">{cat.label}</span>
-                      </button>
-                    );
-                  })}
+            {/* Unified Mobile Bottom Bar */}
+            {(isMobile && !uiHidden) && (
+              <div className="w-full portrait:max-w-md landscape:w-auto landscape:max-w-[40vw] pointer-events-auto mx-auto flex flex-col items-center bg-white/70 backdrop-blur-md rounded-[1.25rem] shadow-lg border border-white/50 p-1.5 gap-1.5">
+                
+                {/* Tab Switcher */}
+                <div className="flex w-full bg-slate-200/50 rounded-xl p-0.5 relative mb-0.5">
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('bricks')} className={`flex-1 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('colors')} className={`flex-1 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
                 </div>
 
-                {/* Bricks in Selected Category */}
-                <div className="w-full bg-white/80 backdrop-blur-xl p-1 sm:p-1.5 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 items-center">
-                  <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1 sm:gap-1.5 px-0.5 py-0.5 snap-x snap-mandatory">
-                    {CATEGORIZED_TYPES[activeCategory].map((t) => (
-                      <button
-                        key={t.type}
-                        onClick={() => handleTypeSelect(t.type)}
-                        className={`relative shrink-0 w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all snap-center ${
-                          selectedType === t.type
-                            ? 'bg-white shadow-md border border-pink-200 ring-2 ring-pink-500/20'
-                            : 'bg-transparent hover:bg-white/40'
-                        }`}
-                      >
-                        {isFurniture(t.type) && !furnitureUnlocked && (
-                          <Lock className="absolute top-0.5 right-0.5 w-2.5 h-2.5 text-slate-400 opacity-60 pointer-events-none" />
-                        )}
-                        <div className="scale-[0.5] sm:scale-[0.6] flex items-center justify-center w-full h-full pointer-events-none">
-                          <ModelIcon type={t.type} selected={selectedType === t.type} />
-                        </div>
-                      </button>
-                    ))}
+                {mobileTab === 'bricks' && (
+                  <div className="w-full flex flex-col gap-1.5">
+                    {/* Category Selector */}
+                    <div className="flex items-center w-full justify-between gap-1 overflow-x-auto touch-pan-x hide-scrollbar">
+                      {BRICK_CATEGORIES.map((cat) => {
+                        const CategoryIcon = cat.icon;
+                        return (
+                          <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={cat.id}
+                            onClick={() => setActiveCategory(cat.id as any)}
+                            className={`flex-1 shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 rounded-xl transition-all ${activeCategory === cat.id ? 'bg-pink-500 text-white shadow-sm' : 'bg-white/60 text-slate-600'}`}
+                          >
+                            <CategoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">{cat.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bricks in Selected Category */}
+                    <div className="w-full bg-white/80 rounded-xl shadow-inner border border-black/5 p-1">
+                      <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1 snap-x snap-mandatory">
+                        {CATEGORIZED_TYPES[activeCategory].map((t) => (
+                          <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={t.type}
+                            onClick={() => handleTypeSelect(t.type)}
+                            className={`relative shrink-0 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-lg transition-all snap-center ${
+                              selectedType === t.type
+                                ? 'bg-white shadow-sm border border-pink-300 ring-2 ring-pink-500/20'
+                                : 'bg-transparent hover:bg-black/5'
+                            }`}
+                          >
+                            {isFurniture(t.type) && !furnitureUnlocked && (
+                              <Lock className="absolute top-0.5 right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 text-slate-400 opacity-60 pointer-events-none" />
+                            )}
+                            <div className="scale-[0.55] sm:scale-[0.65] flex items-center justify-center w-full h-full pointer-events-none">
+                              <ModelIcon type={t.type} selected={selectedType === t.type} />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {mobileTab === 'colors' && (
+                  <div className="w-full bg-white/80 rounded-xl shadow-inner border border-black/5 p-1">
+                    <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1.5 px-0.5 py-1 snap-x snap-mandatory">
+                      {COLORS.map((c) => (
+                        <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={c.hex}
+                          onClick={() => { setColor(c.hex); playSelectSound(); }}
+                          className={`flex-shrink-0 snap-center w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
+                              selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
+                          }`}
+                          style={{ backgroundColor: c.hex }}
+                          title={c.name}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               </div>
             )}
 
-            <div className="flex flex-row items-center justify-center w-full portrait:max-w-[90vw] landscape:w-auto landscape:max-w-[calc(100vw-360px)] sm:w-auto pointer-events-auto mx-auto">
-              {/* Color Hotbar */}
-              <div className="bg-white/80 backdrop-blur-xl p-1 sm:p-1.5 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 flex w-full items-center gap-1 max-w-full overflow-hidden flex-1 md:w-auto">
-                  <div className="flex flex-1 w-full overflow-x-auto touch-pan-x hide-scrollbar md:flex-wrap items-center md:justify-center gap-1.5 md:gap-2 px-1 py-1 md:py-2 snap-x snap-mandatory rounded-xl md:rounded-none md:max-w-4xl">
-                  {COLORS.map((c) => (
-                      <button
-                      key={c.hex}
-                      onClick={() => { setColor(c.hex); playSelectSound(); }}
-                      className={`flex-shrink-0 snap-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
-                          selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
-                      }`}
-                      style={{ backgroundColor: c.hex }}
-                      title={c.name}
-                      />
-                  ))}
-                  </div>
-              </div>
+            {/* Desktop Color Hotbar */}
+            {!isMobile && (
+              <div className="flex flex-row items-center justify-center w-full portrait:max-w-[90vw] landscape:w-auto landscape:max-w-[calc(100vw-360px)] sm:w-auto pointer-events-auto mx-auto mb-2 transition-all duration-300">
+                <div className={`bg-white/80 backdrop-blur-xl p-1 sm:p-1.5 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-white/50 flex w-full items-center gap-1 max-w-full overflow-hidden flex-1 md:w-auto ${uiHidden ? 'hidden' : ''}`}>
+                    <div className="flex flex-1 w-full overflow-x-auto touch-pan-x hide-scrollbar md:flex-wrap items-center md:justify-center gap-1.5 md:gap-2 px-1 py-1 md:py-2 snap-x snap-mandatory rounded-xl md:rounded-none md:max-w-4xl">
+                    {COLORS.map((c) => (
+                        <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={c.hex}
+                        onClick={() => { setColor(c.hex); playSelectSound(); }}
+                        className={`flex-shrink-0 snap-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
+                            selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
+                        }`}
+                        style={{ backgroundColor: c.hex }}
+                        title={c.name}
+                        />
+                    ))}
+                    </div>
+                </div>
 
-              {/* Desktop Action controls (Undo / Redo) */}
-              {!isMobile && (
-                <div className="bg-white/90 backdrop-blur-xl p-2 rounded-full shadow-xl border border-white/50 flex flex-row items-center shrink-0 ml-2">
-                    <div className="flex items-center gap-1 p-1 bg-slate-100/50 rounded-full">
-                    <button
-                        onClick={() => undo()}
+                {/* Desktop Action controls (Undo / Redo + Show/Hide) */}
+                <div className="bg-white/90 backdrop-blur-xl p-2 rounded-full shadow-xl border border-white/50 flex flex-row items-center shrink-0 ml-2 pointer-events-auto transition-all">
+                    <div className={`flex items-center gap-1 p-1 bg-slate-100/50 rounded-full ${uiHidden ? 'hidden' : ''}`}>
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => undo()}
                         disabled={history.length === 0}
                         className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${
                         history.length === 0
@@ -762,8 +808,7 @@ export function UI() {
                     >
                         <Undo2 className="w-5 h-5" />
                     </button>
-                    <button
-                        onClick={() => redo()}
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => redo()}
                         disabled={redoStack.length === 0}
                         className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${
                         redoStack.length === 0
@@ -775,9 +820,16 @@ export function UI() {
                         <Redo2 className="w-5 h-5" />
                     </button>
                     </div>
+                    <div className={`w-px h-8 bg-slate-300/50 mx-2 ${uiHidden ? 'hidden' : ''}`}></div>
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => { setUiHidden((prev: boolean) => !prev); playSelectSound(); }}
+                        className={`flex items-center justify-center w-12 h-12 rounded-full transition-all bg-white text-slate-700 shadow-sm hover:scale-105 active:scale-95 border border-slate-200`}
+                        title={uiHidden ? 'Show UI' : 'Hide UI'}
+                    >
+                        {uiHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
         </div>
       </>
 
@@ -822,7 +874,6 @@ export function UI() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

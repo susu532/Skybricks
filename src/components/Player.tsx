@@ -26,7 +26,11 @@ export function Player({ rotation }: { rotation: number }) {
   const lastJumpPress = useRef(0);
   const wasJump = useRef(false);
   
-  const { selectedType, selectedColor, addBlock, removeBlock } = useStore();
+  const selectedType = useStore((state) => state.selectedType);
+  const selectedColor = useStore((state) => state.selectedColor);
+  const addBlock = useStore((state) => state.addBlock);
+  const removeBlock = useStore((state) => state.removeBlock);
+  const uiHidden = useStore((state) => state.uiHidden);
   
   const dims = BLOCK_DIMENSIONS[selectedType] || { w: 1, d: 1, shape: 'brick' as const };
   const height = getBlockHeight(dims.shape, dims.isPlate);
@@ -121,7 +125,7 @@ export function Player({ rotation }: { rotation: number }) {
   const searchPattern = useMemo(() => {
     if (useStore.getState().performanceMode) {
         const offsets: [number, number, number][] = [];
-        const range = 2;
+        const range = 1;
         const yRange = 1; 
         for (let x = -range; x <= range; x++) {
             for (let z = -range; z <= range; z++) {
@@ -315,10 +319,13 @@ export function Player({ rotation }: { rotation: number }) {
     }
 
     if (targetPos) {
-      setGhostPos(targetPos);
+      setGhostPos(prev => {
+        if (prev && prev[0] === targetPos![0] && prev[1] === targetPos![1] && prev[2] === targetPos![2]) return prev;
+        return targetPos;
+      });
       setIsGhostInvalid(false);
     } else {
-      setGhostPos(null);
+      setGhostPos(prev => prev === null ? null : null);
       setIsGhostInvalid(false);
     }
   });
@@ -434,7 +441,7 @@ export function Player({ rotation }: { rotation: number }) {
         </mesh>
       </RigidBody>
 
-      {ghostPos && (
+      {ghostPos && !uiHidden && (
         <group ref={ghostRef} rotation={[0, rotation, 0]}>
             <Brick
               width={dims.w}

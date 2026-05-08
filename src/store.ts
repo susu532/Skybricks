@@ -158,6 +158,8 @@ interface AppState {
   selectedColor: string;
   selectedType: BlockType;
   performanceMode: boolean;
+  uiHidden: boolean;
+  setUiHidden: (hidden: boolean | ((prev: boolean) => boolean)) => void;
   isMobile: boolean;
   furnitureUnlocked: boolean;
   hasSeenTutorial: boolean;
@@ -298,6 +300,8 @@ export const useStore = create<AppState>()(
     (window.innerWidth < 768 && (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)) ||
     (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)) // For iPad Pro
     : false,
+  uiHidden: false,
+  setUiHidden: (hidden) => set((state) => ({ uiHidden: typeof hidden === 'function' ? hidden(state.uiHidden) : hidden })),
   performanceMode: true,
   furnitureUnlocked: false,
   hasSeenTutorial: false,

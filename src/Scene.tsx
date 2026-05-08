@@ -8,7 +8,9 @@ import { Player } from './components/Player';
 import { MobileLookControls } from './components/MobileLookControls';
 
 export function Scene() {
-  const { blocks, performanceMode, isMobile } = useStore();
+  const blocks = useStore((state) => state.blocks);
+  const performanceMode = useStore((state) => state.performanceMode);
+  const isMobile = useStore((state) => state.isMobile);
   const [rotation, setRotation] = useState(0);
 
 

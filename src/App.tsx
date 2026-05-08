@@ -12,6 +12,7 @@ import { Play } from 'lucide-react';
 import { useStore } from './store';
 
 export default function App() {
+  useEffect(() => { const handleMouseUp = (e) => { if (e.target instanceof HTMLElement && e.target.tagName === "BUTTON") { e.target.blur(); } }; window.addEventListener("mouseup", handleMouseUp); return () => window.removeEventListener("mouseup", handleMouseUp); }, []);
   const [started, setStarted] = useState(false);
   const { performanceMode } = useStore();
 
@@ -28,7 +29,12 @@ export default function App() {
              await cg.SDK.init().catch(() => {});
           }
 
-          if (cg.SDK.game && typeof cg.SDK.game.addAudioListener === 'function') {
+          if (cg.SDK.game && typeof cg.SDK.game.addSettingsChangeListener === 'function') {
+            cg.SDK.game.addSettingsChangeListener((settings: any) => setMuted(settings.muteAudio));
+            if (cg.SDK.game.settings && typeof cg.SDK.game.settings.muteAudio === 'boolean') {
+              setMuted(cg.SDK.game.settings.muteAudio);
+            }
+          } else if (cg.SDK.game && typeof cg.SDK.game.addAudioListener === 'function') {
             cg.SDK.game.addAudioListener((mute: boolean) => setMuted(mute));
           } else if (typeof cg.SDK.addEventListener === 'function') {
             cg.SDK.addEventListener('audio', (event: any) => setMuted(event.mute));
@@ -104,8 +110,8 @@ export default function App() {
       <div className="absolute inset-0 touch-none">
         <Canvas 
           camera={{ position: [0, 8, 15], fov: 60 }}
-          dpr={performanceMode ? 1 : Math.min(2, window.devicePixelRatio)}
-          gl={{ antialias: !performanceMode }}
+          dpr={performanceMode ? (useStore.getState().isMobile ? 0.75 : 1) : Math.min(2, window.devicePixelRatio)}
+          gl={{ antialias: !performanceMode, powerPreference: "high-performance" }}
         >
           <Scene />
         </Canvas>
