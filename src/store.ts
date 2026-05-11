@@ -268,8 +268,8 @@ export const useStore = create<AppState>()(
           for (let z = -20; z < 20; z += 4) {
              const zOff = z + 2;
              if (h < 5 && (z === 0 || z === -8 || z === 8)) continue;
-             add('2x4', -8, y, zOff, 0, cWallCore);
-             add('2x4', 8, y, zOff, 0, cWallCore);
+             add('2x3', -8, y, zOff, 0, cWallCore);
+             add('2x3', 8, y, zOff, 0, cWallCore);
           }
 
           // Horizontal Room Dividers (Avoiding hallway vertical wall intersection)
@@ -439,7 +439,7 @@ export const useStore = create<AppState>()(
 
         // Interior & Furniture
         add('canopy_bed', 0, castleFloorY + 2.5, cz + 4, 0, cBPink);
-        add('heart_rug', 0, castleFloorY + 0.4, cz - 2, 0, cBPink);
+        add('heart_rug', 0, castleFloorY + 0.8, cz - 2, 0, cBPink);
         add('bow_chair', -4, castleFloorY + 1.2, cz - 4, Math.PI/2, cBGold);
         add('bow_chair', 4, castleFloorY + 1.2, cz - 4, -Math.PI/2, cBGold);
         add('vanity', 0, castleFloorY + 1.2, cz - 6, Math.PI, cBWhite);

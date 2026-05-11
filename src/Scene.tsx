@@ -91,7 +91,6 @@ export function Scene() {
           <N8AO aoRadius={1.0} intensity={1.5} />
           <Bloom luminanceThreshold={1.2} mipmapBlur intensity={0.08} />
           <Vignette eskil={false} offset={0.1} darkness={0.4} />
-          <TiltShift2 blur={0.2} focusThreshold={0.05} />
         </EffectComposer>
       )}
     </>
