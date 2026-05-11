@@ -216,6 +216,15 @@ export function Player({ rotation }: { rotation: number }) {
     ref.current.setLinvel({ x: direction.x, y: vy, z: direction.z });
 
     const pos = ref.current.translation();
+    
+    if (pos.y < -20) {
+      ref.current.setTranslation({ x: 0, y: 8, z: -30 });
+      ref.current.setLinvel({ x: 0, y: 0, z: 0 });
+      pos.y = 8;
+      pos.x = 0;
+      pos.z = -30;
+    }
+
     camera.position.set(pos.x, pos.y + 1.2, pos.z);
 
     const nowTime = performance.now();
@@ -433,7 +442,7 @@ export function Player({ rotation }: { rotation: number }) {
         colliders={false} 
         mass={1} 
         type="dynamic" 
-        position={[0, 8, 10]} 
+        position={[0, 8, -30]} 
         enabledRotations={[false, false, false]}
         canSleep={false}
         gravityScale={isFlying ? 0 : 1}
