@@ -184,110 +184,293 @@ export const useStore = create<AppState>()(
       const generateHouse = (): BlockData[] => {
         const blocks: BlockData[] = [];
         let idCounter = 0;
-    const add = (type: BlockType, x: number, y: number, z: number, rotY: number, color: string) => {
-      blocks.push({
-        id: `house_${idCounter++}`,
-        type,
-        position: [x, y, z],
-        rotation: [0, rotY, 0],
-        color,
-      });
-    };
+        const add = (type: BlockType, x: number, y: number, z: number, rotY: number, color: string) => {
+          blocks.push({ id: `mansion_${idCounter++}`, type, position: [x, y, z], rotation: [0, rotY, 0], color });
+        };
 
-    const cPink = '#FF69B4'; // Hot Pink
-    const cMagenta = '#FF0090'; // Magenta
-    const cLilac = '#C8A2C8'; // Lilac
-    const cMint = '#98FF98'; // Mint Green
-    const cWhite = '#FFFFFF';
-    const cYellow = '#FFF44F'; // Zesty Yellow
+        const cWallCore = '#f8f4e6'; // Off-white interior
+        const cWallExt = '#e6d8cd'; // Warm beige stone exterior
+        const cRoof = '#363636'; // Slate grey roof
+        const cFloorLiving = '#8b5a2b'; // Wood floor
+        const cFloorKitchen = '#cdd0d8'; // Tile floor
+        const cFloorBed = '#dcd5c9'; // Carpet
+        const cFloorBath = '#b0c4de'; // Light blue tile
+        const cGrass = '#5c9a41';
 
-    // Base Dimensions
-    const width = 12; // in studs 
-    const depth = 10;
-    
-    // Foundation (Plates)
-    for (let x = -width/2; x < width/2; x+=2) {
-      for (let z = -depth/2; z < depth/2; z+=4) {
-        add('plate_2x4', x + 1, 0.2, z + 2, 0, cMint);
-      }
-    }
+        const width = 48;
+        const depth = 40;
 
-    // Walls
-    const wallHeight = 5;
-    for (let h = 0; h < wallHeight; h++) {
-      const y = h * 1.2 + 0.6 + 0.4; // 0.4 is plate height
-      const color = h % 2 === 0 ? cPink : cLilac;
-      
-      // Front and Back walls
-      for (let x = -width/2; x < width/2; x += 4) {
-        // Leave a gap for door on the front
-        if (h < 3 && x >= -2 && x < 2) {
-            // Doorway gap
-        } else {
-            add('2x4', x + 2, y, -depth/2 + 1, Math.PI / 2, color); // Front
+        // --- Yard ---
+        for (let x = -32; x < 32; x += 8) {
+          for (let z = -32; z < 32; z += 8) {
+            const px = x + 4;
+            const pz = z + 4;
+            // Skip yard plates that are directly under the house foundation
+            if (Math.abs(px) < 24 && Math.abs(pz) < 20) continue;
+            add('plate_8x8', px, 0.2, pz, 0, cGrass);
+          }
         }
-        add('2x4', x + 2, y, depth/2 - 1, Math.PI / 2, color); // Back
-      }
 
-      // Left and Right walls
-      // Space to fill is Z from -3 to 3 (length 6)
-      // We'll use one 2x4 (length 4) and one 2x2 (length 2)
-      if (h === 2) {
-         // Window gap -> just add the 2x2 on details if needed, but leaving a 4-long gap
-         // Left side
-         add('2x2', -width/2 + 1, y, 2, 0, color);  // covers Z [1, 3], leaves [-3, 1] open
-         // Right side
-         add('2x2', width/2 - 1, y, 2, 0, color);
-      } else {
-         // Left side
-         add('2x4', -width/2 + 1, y, -1, 0, color); // covers Z [-3, 1]
-         add('2x2', -width/2 + 1, y, 2, 0, color);  // covers Z [1, 3]
-         // Right side
-         add('2x4', width/2 - 1, y, -1, 0, color);
-         add('2x2', width/2 - 1, y, 2, 0, color);
-      }
+        // --- Foundation & Floors ---
+        const floorY = 0.6; // 0.2 (grass) + 0.4 (plate)
+        for (let x = -24; x < 24; x += 4) {
+          for (let z = -20; z < 20; z += 4) {
+            let color = cFloorLiving; // Default living area
+            
+            // Kitchen/Dining (Front Right)
+            if (x >= 0 && z >= 0) color = cFloorKitchen;
+            // Master Bedroom (Back Left)
+            if (x < -8 && z < 0) color = cFloorBed;
+            // Guest Room (Front Left)
+            if (x < -8 && z >= 0) color = cFloorBed;
+            // Bathrooms (Right side back)
+            if (x >= 8 && z < 0) color = cFloorBath;
+            // Library/Office (Middle Left)
+            if (x >= -8 && x < 0 && z < 0) color = '#5d4037'; // Dark wood
+            
+            add('plate_4x4', x + 2, floorY, z + 2, 0, color);
+          }
+        }
 
-      // Corners filler
-      add('2x2', -width/2 + 1, y, -depth/2 + 1, 0, color);
-      add('2x2', width/2 - 1, y, -depth/2 + 1, 0, color);
-      add('2x2', -width/2 + 1, y, depth/2 - 1, 0, color);
-      add('2x2', width/2 - 1, y, depth/2 - 1, 0, color);
-    }
+        // --- Exterior & Interior Walls ---
+        const wallH = 8; // Taller walls for a mansion
+        for (let h = 0; h < wallH; h++) {
+          const y = floorY + 0.2 + h * 1.2 + 0.6;
+          
+          // Outer Perimeter - Back & Front Walls (Horizontal orientation wins at corners)
+          for (let x = -24; x < 24; x += 4) {
+            const xOff = x + 2;
+            // Back Wall (Z = -19)
+            if (!(h >= 2 && h <= 5 && (x === -16 || x === 16))) {
+              add('2x4', xOff, y, -19, Math.PI / 2, cWallExt);
+            }
+            // Front Wall (Z = 19)
+            if (!(h < 5 && x >= -4 && x < 4) && !(h >= 2 && h <= 5 && (x === -16 || x === 16))) {
+              add('2x4', xOff, y, 19, Math.PI / 2, cWallExt);
+            }
+          }
 
-    // Arch over door
-    add('2x4', 0, 3 * 1.2 + 1.0, -depth/2 + 1, Math.PI / 2, cMagenta);
+          // Outer Perimeter - Side Walls (Vertical orientation, adjusted to fit between corners)
+          for (let z = -16; z < 16; z += 4) {
+            const zOff = z + 2;
+            if (h >= 2 && h <= 5 && (z === -8 || z === 8)) continue;
+            add('2x4', -23, y, zOff, 0, cWallExt);
+            add('2x4', 23, y, zOff, 0, cWallExt);
+          }
+          // Close the corner gaps precisely
+          add('2x2', -23, y, -17, 0, cWallExt);
+          add('2x2', 23, y, -17, 0, cWallExt);
+          add('2x2', -23, y, 17, 0, cWallExt);
+          add('2x2', 23, y, 17, 0, cWallExt);
 
-    // Roof (Pyramid style)
-    const roofColor = cMagenta;
-    let roofY = wallHeight * 1.2 + 1.0;
-    for (let level = 0; level < 4; level++) {
-       const cw = width / 2 - level * 2;
-       const cd = depth / 2 - level * 2;
-       
-       if (cw <= 0 || cd <= 0) break;
-       
-       for (let x = -cw; x < cw; x += 2) {
-         add('2x2', x + 1, roofY, -cd + 1, 0, roofColor);
-         add('2x2', x + 1, roofY, cd - 1, 0, roofColor);
-       }
-       for (let z = -cd + 2; z < cd - 2; z += 2) {
-         add('2x2', -cw + 1, roofY, z + 1, 0, roofColor);
-         add('2x2', cw - 1, roofY, z + 1, 0, roofColor);
-       }
-       roofY += 1.2;
-    }
-    
-    // Top ornament
-    add('1x2', 0, roofY, 0, 0, cYellow);
-    
-    // Some decorations (plants/fences)
-    add('1x1', -4, 0.6 + 0.4, -depth/2 - 1, 0, cMint);
-    add('1x1', 4, 0.6 + 0.4, -depth/2 - 1, 0, cMint);
-    add('1x1', -4, 1.8 + 0.4, -depth/2 - 1, 0, cYellow); // flower
-    add('1x1', 4, 1.8 + 0.4, -depth/2 - 1, 0, cYellow); // flower
+          // Interior Dividers
+          // Vertical Hallway Walls
+          for (let z = -20; z < 20; z += 4) {
+             const zOff = z + 2;
+             if (h < 5 && (z === 0 || z === -8 || z === 8)) continue;
+             add('2x4', -8, y, zOff, 0, cWallCore);
+             add('2x4', 8, y, zOff, 0, cWallCore);
+          }
 
-    return blocks;
-  };
+          // Horizontal Room Dividers (Avoiding hallway vertical wall intersection)
+          for (let x = -24; x < 24; x += 4) {
+             const xOff = x + 2;
+             if (x === -8 || x === 8) continue; // Step aside at hallway junctions
+             if (h < 5 && (x === -16 || x === 16)) continue; 
+             add('2x4', xOff, y, 0, Math.PI / 2, cWallCore);
+          }
+        }
+
+        // --- Roof details ---
+        let roofY = floorY + 0.2 + wallH * 1.2 + 0.2; 
+        for (let x = -28; x < 28; x += 8) {
+          for (let z = -24; z < 24; z += 8) {
+            add('plate_8x8', x + 4, roofY, z + 4, 0, cRoof);
+          }
+        }
+        
+        // --- Furniture ---
+        const fy = floorY + 0.2;
+
+        // Grand Entrance Hall (Middle Front: x -8..8, z 0..20)
+        
+        add('pouf', -5, fy + 0.6, 14, 0, '#FAF9F6');
+
+        // Living Room (West Front: x -24..-8, z 0..20)
+        add('sofa', -16, fy + 1.0, 14, Math.PI, '#222222'); // Facing South
+        add('coffee_table', -16, fy + 0.7, 9, 0, '#ffffff');
+        
+        add('cabinet', -20, fy + 1.8, 0.8, 0, '#111111');
+        add('tv', -20, fy + 4.1, 0.8, 0, '#000000'); // Moved right to clear doorway
+        add('armchair', -21, fy + 1.0, 9, Math.PI/4, '#d4af37'); 
+
+        // Professional Kitchen (East Front: x 8..24, z 0..20)
+        // Main units along the East wall
+        add('fridge', 20.5, fy + 3.0, 3, -Math.PI / 2, '#444444');
+        add('stove', 20.5, fy + 1.2, 7, -Math.PI / 2, '#222222');
+        add('sink', 20.5, fy + 1.2, 11, -Math.PI / 2, '#ffffff');
+        
+        // Kitchen Island
+        add('cabinet', 18, fy + 1.6, 6, -Math.PI / 2, '#222222');
+        add('cabinet', 18, fy + 1.6, 10, -Math.PI / 2, '#222222');
+
+        // Formal Dining Area (Within East Front Room)
+        add('dining_table', 13, fy + 1.2, 8, Math.PI / 2, '#4d3227');
+        add('chair', 13, fy + 1.0, 4, 0, '#333333');
+        add('chair', 13, fy + 1.0, 12, -Math.PI, '#333333');
+
+        // Executive Office (Middle Back: x -8..8, z -20..0)
+        add('bookshelf', 0, fy + 3.0, -17, 0, '#3b2f2f');
+        add('desk', 0, fy + 1.2, -12, 0, '#1a1a1a');
+        add('monitor', 0, fy + 3.2, -12, 0, '#000000');
+        add('chair', 0, fy + 1.0, -14, 0, '#333333');
+        add('armchair', 5, fy + 1.0, -8, -Math.PI/2, '#483c32');
+
+        // Master Retreat (West Back: x -24..-8, z -20..0)
+        add('canopy_bed', -16, fy + 2.5, -12, 0, '#222222');
+        add('tv', -20, fy + 3.0, -1.5, Math.PI, '#000000');
+        add('lamp', -12, fy + 2.4, -15, 0, '#ffffff');
+
+        // Spa Bathroom (East Back: x 8..24, z -20..0)
+        add('bathtub', 18, fy + 0.8, -14, 0, '#ffffff');
+        add('shower', 20, fy + 3.0, -8, 0, '#8ed1e0');
+        add('vanity', 14, fy + 1.2, -4, Math.PI, '#111111');
+        add('toilet', 20, fy + 0.8, -16.5, 0, '#ffffff');
+
+        // --- Outdoor Oasis ---
+        
+        // Sun Deck
+        add('sofa', 12, fy + 0.5, 31, Math.PI, '#ffffff');
+        add('sofa', 28, fy + 0.5, 31, Math.PI, '#ffffff');
+        
+        // Vegetation
+        for (let i = 0; i < 3; i++) {
+            add('plant', -28, floorY + 1.0, -20 + i * 20, 0, '#006400');
+            add('plant', 28, floorY + 1.0, -20 + i * 20, 0, '#006400');
+        }
+
+        add('disco_ball', 0, 8, 10, 0, '#ffffff'); 
+
+        // --- Barbie Castle Extension ---
+        const cBPink = '#FA31A7'; // Barbie Pink
+        const cBLightPink = '#FFB6C1'; // Light Pink
+        const cBWhite = '#FFFFFF'; // White
+        const cBGold = '#FFD700'; // Gold accents
+
+        const cx = 0;
+        const cz = 55; // Positioned in front of the mansion (mansion ends at z=20)
+        const castleFloorY = floorY;
+
+        // Expanded Grass for Castle
+        for (let x = -24; x < 24; x += 8) {
+          for (let z = 32; z < 80; z += 8) {
+            add('plate_8x8', x + 4, 0.2, z + 4, 0, cGrass);
+          }
+        }
+
+        // Castle Foundation
+        for (let x = -12; x < 12; x += 4) {
+          for (let z = cz - 10; z < cz + 10; z += 4) {
+             add('plate_4x4', x + 2, castleFloorY, z + 2, 0, cBWhite);
+          }
+        }
+
+        // Corner Towers (4 main ones)
+        const towerPositions = [
+          {x: -11, z: cz - 9}, {x: 11, z: cz - 9},
+          {x: -11, z: cz + 9}, {x: 11, z: cz + 9}
+        ];
+
+        towerPositions.forEach(pos => {
+          // Base
+          for(let h = 0; h < 12; h++) {
+            add('cylinder_2x2', pos.x, castleFloorY + 0.6 + h * 1.2, pos.z, 0, cBLightPink);
+          }
+          // Trim/Balcony at top of tower
+          add('plate_4x4', pos.x, castleFloorY + 0.6 + 12 * 1.2 + 0.2, pos.z, 0, cBPink);
+          // Pointy Roof
+          for(let rh = 0; rh < 3; rh++) {
+            add('cylinder_1x1', pos.x, castleFloorY + 0.6 + 12 * 1.2 + 0.6 + rh * 1.2, pos.z, 0, cBPink);
+          }
+        });
+
+        // Main Walls
+        const castleWallH = 10;
+        for (let h = 0; h < castleWallH; h++) {
+          const y = castleFloorY + 0.6 + h * 1.2 + 0.6;
+          
+          // Front & Back Walls
+          for (let x = -8; x <= 8; x += 4) {
+            // Front wall with entrance gap
+            if (!(h < 4 && Math.abs(x) < 2)) {
+               add('2x4', x, y, cz - 9, Math.PI/2, cBPink);
+            }
+            // Back wall
+            add('2x4', x, y, cz + 9, Math.PI/2, cBPink);
+          }
+
+          // Side Walls
+          for (let z = cz - 5; z <= cz + 5; z += 4) {
+            add('2x4', -11, y, z, 0, cBPink);
+            add('2x4', 11, y, z, 0, cBPink);
+          }
+        }
+
+        // Second Floor
+        const secondFloorY = castleFloorY + 0.6 + castleWallH * 1.2 + 0.4;
+        for (let x = -8; x < 8; x += 4) {
+          for (let z = cz - 8; z < cz + 8; z += 4) {
+            add('plate_4x4', x + 2, secondFloorY, z + 2, 0, cBWhite);
+          }
+        }
+
+        // Central Mini Tower
+        for(let h = 0; h < 6; h++) {
+          add('cylinder_2x2', 0, secondFloorY + 0.6 + h * 1.2, cz, 0, cBWhite);
+        }
+        add('plate_4x4', 0, secondFloorY + 0.6 + 6 * 1.2 + 0.2, cz, 0, cBGold);
+        add('cylinder_1x1', 0, secondFloorY + 0.6 + 6 * 1.2 + 0.8, cz, 0, cBPink);
+
+        // Balcony Railings (Plates)
+        for(let x = -10; x <= 10; x += 4) {
+          add('plate_1x4', x, secondFloorY + 0.4, cz - 8, Math.PI/2, cBGold);
+          add('plate_1x4', x, secondFloorY + 0.4, cz + 8, Math.PI/2, cBGold);
+        }
+
+        // Interior & Furniture
+        add('canopy_bed', 0, castleFloorY + 2.5, cz + 4, 0, cBPink);
+        add('heart_rug', 0, castleFloorY + 0.4, cz - 2, 0, cBPink);
+        add('bow_chair', -4, castleFloorY + 1.2, cz - 4, Math.PI/2, cBGold);
+        add('bow_chair', 4, castleFloorY + 1.2, cz - 4, -Math.PI/2, cBGold);
+        add('vanity', 0, castleFloorY + 1.2, cz - 6, Math.PI, cBWhite);
+        add('disco_ball', 0, secondFloorY + 4, cz, 0, '#ffffff');
+
+        // Path between Mansion and Castle
+        for(let z = 20; z < 45; z += 4) {
+          add('plate_4x4', 0, floorY, z + 2, 0, '#FAF9F6');
+        }
+
+        // Heart-Shaped Pool
+        add('heart_rug', -12, floorY + 0.1, 40, 0, '#00AEEF'); // Pool blue
+        add('heart_rug', 12, floorY + 0.1, 40, 0, '#00AEEF');
+
+        // Palm Trees
+        const addPalm = (x: number, z: number) => {
+          // Trunk
+          for(let th = 0; th < 5; th++) {
+            add('cylinder_1x1', x, floorY + 0.6 + th * 1.2, z, 0, '#6F4E37');
+          }
+          // Leaves (using plates)
+          add('plate_4x4', x, floorY + 0.6 + 5 * 1.2 + 0.2, z, 0, '#228B22');
+        };
+
+        addPalm(-18, 50);
+        addPalm(18, 50);
+        addPalm(-18, 70);
+        addPalm(18, 70);
+
+        return blocks;
+      };
 
   return {
   blocks: generateHouse(),
@@ -352,7 +535,7 @@ export const useStore = create<AppState>()(
   setHasSeenTutorial: (val) => set({ hasSeenTutorial: val }),
 };},
     {
-      name: 'block-builder-storage',
+      name: 'mansion-builder-storage',
       storage: createJSONStorage(() => crazyGamesStorage),
       partialize: (state) => ({ 
         blocks: state.blocks, 

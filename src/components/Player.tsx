@@ -191,7 +191,7 @@ export function Player({ rotation }: { rotation: number }) {
     
     if (movement.jump && !wasJump.current) {
       const now = performance.now();
-      if (now - lastJumpPress.current < 300) {
+      if (now - lastJumpPress.current < 500) {
         setIsFlying(!isFlying);
       }
       lastJumpPress.current = now;
@@ -438,7 +438,7 @@ export function Player({ rotation }: { rotation: number }) {
         canSleep={false}
         gravityScale={isFlying ? 0 : 1}
       >
-        <CapsuleCollider args={[0.5, 0.4]} />
+        <CapsuleCollider args={[0.5, 0.4]} sensor={isFlying} />
         <mesh userData={{ isPlayer: true }} visible={false}>
           <capsuleGeometry args={[0.4, 1.0]} />
         </mesh>

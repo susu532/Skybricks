@@ -475,36 +475,51 @@ export function UI() {
             </button>
           )}
 
-          {isMobile && !uiHidden && !furnitureUnlocked && (
-             <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                 onClick={handleUnlockFurniture}
-                 className="group relative flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
-             >
-                 <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                 <Lock className="w-4 h-4 text-white shadow-sm" />
-                 <span className="font-extrabold text-xs tracking-wide flex items-center gap-1 text-shadow-sm whitespace-nowrap">
-                     Unlock Furniture
-                 </span>
-             </button>
-          )}
-
           {!uiHidden && (
             <>
               {/* Action Buttons Panel */}
               <div className={`flex flex-col gap-2 items-end transition-all origin-top-right ${isMobile && !menuOpen ? 'scale-0 opacity-0 absolute -z-10' : 'scale-100 opacity-100 relative z-10'} ${(hasPointerLock && !isMobile) ? 'opacity-0 scale-95 pointer-events-none' : ''}`}>
                 
-                {!isMobile && !furnitureUnlocked && (
-                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                    onClick={handleUnlockFurniture}
-                    className="group relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
-                >
-                    <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
-                    <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-white shadow-sm" />
-                    <span className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1 text-shadow-sm whitespace-nowrap">
-                        Unlock Furniture
-                    </span>
-                </button>
-                )}
+                <div className="flex justify-end gap-2 items-center">
+                  {!furnitureUnlocked && (
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onClick={handleUnlockFurniture}
+                        className="group relative flex items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-full shadow-[0_0_20px_rgba(217,70,239,0.4)] border border-white/20 transition-all hover:scale-105 active:scale-95 animate-pulse hover:animate-none"
+                    >
+                        <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                        <Lock className="w-4 h-4 sm:w-5 sm:h-5 text-white shadow-sm" />
+                        <span className="font-extrabold text-xs sm:text-base tracking-wide flex items-center gap-1 text-shadow-sm whitespace-nowrap">
+                            Unlock Furniture
+                        </span>
+                    </button>
+                  )}
+
+                  {isMobile && (
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
+                            try {
+                                const el = document.documentElement as any;
+                                if (!document.fullscreenElement) {
+                                    if (el.requestFullscreen) el.requestFullscreen();
+                                    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                                    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+                                    
+                                    const navScreen = screen as any;
+                                    if (navScreen.orientation && navScreen.orientation.lock) {
+                                        navScreen.orientation.lock('landscape').catch(() => {});
+                                    }
+                                } else {
+                                    if (document.exitFullscreen) document.exitFullscreen();
+                                }
+                                playSelectSound();
+                            } catch(e) {}
+                        }}
+                        className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all flex items-center justify-center"
+                        title="Toggle Fullscreen"
+                    >
+                        <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  )}
+                </div>
 
                 <div className="flex gap-2 sm:gap-2 flex-wrap items-center justify-end max-w-[200px] sm:max-w-none bg-white/80 sm:bg-transparent p-2 sm:p-0 rounded-2xl sm:rounded-none backdrop-blur-md sm:backdrop-blur-none border sm:border-none border-white/50">
                   
@@ -528,29 +543,31 @@ export function UI() {
                   >
                       {performanceMode ? <ZapOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Zap className="w-4 h-4 sm:w-5 sm:h-5" />}
                   </button>
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
-                          try {
-                              const el = document.documentElement as any;
-                              if (!document.fullscreenElement) {
-                                  if (el.requestFullscreen) el.requestFullscreen();
-                                  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-                                  else if (el.msRequestFullscreen) el.msRequestFullscreen();
-                                  
-                                  const navScreen = screen as any;
-                                  if (navScreen.orientation && navScreen.orientation.lock) {
-                                      navScreen.orientation.lock('landscape').catch(() => {});
-                                  }
-                              } else {
-                                  if (document.exitFullscreen) document.exitFullscreen();
-                              }
-                              playSelectSound();
-                          } catch(e) {}
-                      }}
-                      className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all flex items-center justify-center"
-                      title="Toggle Fullscreen"
-                  >
-                      <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
+                  {!isMobile && (
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
+                            try {
+                                const el = document.documentElement as any;
+                                if (!document.fullscreenElement) {
+                                    if (el.requestFullscreen) el.requestFullscreen();
+                                    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+                                    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+                                    
+                                    const navScreen = screen as any;
+                                    if (navScreen.orientation && navScreen.orientation.lock) {
+                                        navScreen.orientation.lock('landscape').catch(() => {});
+                                    }
+                                } else {
+                                    if (document.exitFullscreen) document.exitFullscreen();
+                                }
+                                playSelectSound();
+                            } catch(e) {}
+                        }}
+                        className="p-2.5 sm:p-3 bg-white hover:bg-slate-50 text-slate-700 rounded-full shadow-md sm:shadow-lg border border-slate-100 transition-all flex items-center justify-center"
+                        title="Toggle Fullscreen"
+                    >
+                        <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  )}
 
                   {/* Eye Toggle (Mobile) - inside menu section */}
                   {isMobile && (

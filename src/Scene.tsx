@@ -39,13 +39,13 @@ export function Scene() {
         intensity={0.8} 
         color="#ffffff"
       >
-        <orthographicCamera attach="shadow-camera" args={[-30, 30, 30, -30]} />
+        <orthographicCamera attach="shadow-camera" args={[-100, 100, 100, -100]} />
       </directionalLight>
       <ambientLight intensity={0.4} color="#ffffff" />
       
       {/* Preppy Sky Background */}
       <color attach="background" args={['#bae6fd']} />
-      <fog attach="fog" args={['#bae6fd', 10, 50]} />
+      <fog attach="fog" args={['#bae6fd', 10, 100]} />
 
       <Physics>
         <Player rotation={rotation} />
@@ -53,9 +53,9 @@ export function Scene() {
         <group>
           {/* Ground */}
           <RigidBody type="fixed" colliders={false} position={[0, 0, 0]}>
-            <CuboidCollider args={[50, 0.05, 50]} position={[0, -0.05, 0]} />
+            <CuboidCollider args={[100, 0.05, 100]} position={[0, -0.05, 0]} />
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
-              <planeGeometry args={[100, 100]} />
+              <planeGeometry args={[200, 200]} />
               <meshStandardMaterial 
                 color="#e9a3bc" 
                 roughness={1} 
@@ -91,6 +91,7 @@ export function Scene() {
           <N8AO aoRadius={1.0} intensity={1.5} />
           <Bloom luminanceThreshold={1.2} mipmapBlur intensity={0.08} />
           <Vignette eskil={false} offset={0.1} darkness={0.4} />
+          <TiltShift2 blur={0.2} focusThreshold={0.05} />
         </EffectComposer>
       )}
     </>
