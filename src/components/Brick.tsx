@@ -1,14 +1,76 @@
 import { CuboidCollider, RigidBody } from '@react-three/rapier';
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { playClackSound } from '../audio';
+import { BLOCK_DIMENSIONS } from '../store';
 
 export const BRICK_HEIGHT = 1.2;
 export const BRICK_WIDTH = 1.0;
 export const PLATE_HEIGHT = BRICK_HEIGHT / 3;
 export const STUD_HEIGHT = 0.2;
 export const STUD_RADIUS = 0.3;
+
+const tempMatrix = new THREE.Matrix4();
+
+export function InstancedBricks({ blocks, performanceMode }: { blocks: any[], performanceMode: boolean }) {
+  const groups = useMemo(() => {
+    const map = new Map<string, any>();
+    for (const b of blocks) {
+      if (!b || !b.type) continue;
+      const d = BLOCK_DIMENSIONS[b.type as keyof typeof BLOCK_DIMENSIONS] || { w: 1, d: 1 };
+      const shape = d.shape || 'brick';
+      const isFurniture = shape !== 'brick' && shape !== 'cylinder';
+      if (isFurniture) continue;
+      
+      const height = getBlockHeight(shape, d.isPlate);
+      // Key includes size, shape, color, and performanceMode to ensure same material/geometry
+      const geomKey = `${d.w}_${d.d}_${height}_${shape}`;
+      const matKey = `${b.color}_${performanceMode}`;
+      const key = `${geomKey}:::${matKey}`;
+      
+      if (!map.has(key)) {
+        map.set(key, { w: d.w, d: d.d, h: height, shape, color: b.color, blocks: [] });
+      }
+      map.get(key)!.blocks.push(b);
+    }
+    return Array.from(map.values());
+  }, [blocks, performanceMode]);
+
+  return (
+    <>
+      {groups.map((g, i) => (
+        <InstancedGroup key={i} group={g} performanceMode={performanceMode} />
+      ))}
+    </>
+  );
+}
+
+function InstancedGroup({ group, performanceMode }: any) {
+    const meshRef = useRef<THREE.InstancedMesh>(null);
+    const geom = getGeometry(group.w, group.d, group.h, group.shape);
+    const mat = getBrickMaterial(group.color, false, false, performanceMode);
+    
+    useLayoutEffect(() => {
+        if (!meshRef.current) return;
+        group.blocks.forEach((b: any, i: number) => {
+            tempMatrix.makeRotationFromEuler(new THREE.Euler(b.rotation[0], b.rotation[1], b.rotation[2]));
+            tempMatrix.setPosition(b.position[0], b.position[1], b.position[2]);
+            meshRef.current!.setMatrixAt(i, tempMatrix);
+        });
+        meshRef.current.instanceMatrix.needsUpdate = true;
+    }, [group.blocks]);
+
+    return (
+        <instancedMesh
+            ref={meshRef}
+            args={[geom, mat, group.blocks.length]}
+            castShadow
+            receiveShadow
+            userData={{ blocks: group.blocks }}
+        />
+    );
+}
 
 export function getBlockHeight(shape?: string, isPlate?: boolean) {
     let height = isPlate ? PLATE_HEIGHT : BRICK_HEIGHT;
@@ -35,6 +97,7 @@ export function getBlockHeight(shape?: string, isPlate?: boolean) {
     else if (shape === 'mirror') height = 3.0;
     else if (shape === 'stool') height = 1.6;
     else if (shape === 'pouf') height = 1.2;
+    else if (shape === 'plant') height = 2.0;
     else if (shape === 'heart_rug') height = 0.2;
     else if (shape === 'canopy_bed') height = 5.0;
     else if (shape === 'clothing_rack') height = 4.0;
@@ -226,23 +289,55 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
     } else if (shape === 'plant') {
         content = (
             <group ref={groupRef} userData={{ id, isGhost }}>
-                {/* Pot */}
-                <mesh position={[0, -height/2 + 0.4, 0]} material={material}>
-                    <cylinderGeometry args={[0.4, 0.3, 0.8]} />
+                {/* Pot - more detailed with rim */}
+                <mesh position={[0, -height/2 + 0.3, 0]} material={material}>
+                    <cylinderGeometry args={[0.45, 0.35, 0.6]} />
                 </mesh>
-                {/* Plant body */}
-                <mesh position={[0, 0.4, 0]}>
-                    <sphereGeometry args={[0.6, 16, 16]} />
-                    <meshStandardMaterial color="#4ade80" roughness={0.8} />
+                <mesh position={[0, -height/2 + 0.65, 0]} material={material}>
+                    <cylinderGeometry args={[0.5, 0.45, 0.15]} />
                 </mesh>
-                <mesh position={[0, 0.8, -0.2]}>
-                    <sphereGeometry args={[0.5, 16, 16]} />
-                    <meshStandardMaterial color="#22c55e" roughness={0.8} />
+                {/* Soil */}
+                <mesh position={[0, -height/2 + 0.6, 0]}>
+                    <cylinderGeometry args={[0.4, 0.4, 0.05]} />
+                    <meshStandardMaterial color="#3d2b1f" roughness={1} />
                 </mesh>
-                <mesh position={[0.2, 0.6, 0.3]}>
-                    <sphereGeometry args={[0.4, 16, 16]} />
-                    <meshStandardMaterial color="#16a34a" roughness={0.8} />
+                {/* Stem */}
+                <mesh position={[0, -height/2 + 1.0, 0]}>
+                    <cylinderGeometry args={[0.08, 0.1, 0.8]} />
+                    <meshStandardMaterial color="#2d5a27" roughness={0.9} />
                 </mesh>
+                {/* Foliage - multiple clusters for a bushier look */}
+                <group position={[0, height/2 - 0.5, 0]}>
+                    {/* Main clump */}
+                    <mesh position={[0, 0, 0]} scale={[1, 0.9, 1]}>
+                        <sphereGeometry args={[0.7, 12, 12]} />
+                        <meshStandardMaterial color="#166534" roughness={0.9} />
+                    </mesh>
+                    {/* Secondary clumps */}
+                    <mesh position={[0.4, 0.3, 0.4]} scale={[0.8, 0.7, 0.8]}>
+                        <sphereGeometry args={[0.5, 8, 8]} />
+                        <meshStandardMaterial color="#15803d" roughness={0.8} />
+                    </mesh>
+                    <mesh position={[-0.4, 0.4, -0.4]} scale={[0.7, 0.8, 0.7]}>
+                        <sphereGeometry args={[0.5, 8, 8]} />
+                        <meshStandardMaterial color="#14532d" roughness={0.8} />
+                    </mesh>
+                    
+                    {/* Side leaves/highlights using selected color if it's not green, otherwise a bright green */}
+                    {[0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].map((angle, i) => (
+                        <group key={i} rotation={[0, angle, 0]}>
+                            <mesh position={[0.5, 0.1, 0]} rotation={[0, 0, -Math.PI/4]} scale={[0.9, 0.3, 0.7]}>
+                                <sphereGeometry args={[0.5, 8, 8]} />
+                                <meshStandardMaterial color={color.toLowerCase() === '#006400' ? "#4ade80" : color} roughness={0.8} />
+                            </mesh>
+                        </group>
+                    ))}
+                    {/* Top leaf/bud */}
+                    <mesh position={[0, 1.0, 0]} scale={[0.4, 0.6, 0.4]}>
+                        <sphereGeometry args={[0.5, 8, 8]} />
+                        <meshStandardMaterial color="#86efac" roughness={0.8} />
+                    </mesh>
+                </group>
             </group>
         );
     } else if (shape === 'rug') {
@@ -889,9 +984,17 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
         );
     }
 
+    if (!isDynamic) {
+        return (
+            <group position={position} rotation={rotation}>
+                {content}
+            </group>
+        );
+    }
+
     return (
         <RigidBody 
-            type={isDynamic ? "dynamic" : "fixed"} 
+            type="dynamic"
             position={position} 
             rotation={rotation} 
             colliders={false}
@@ -899,9 +1002,7 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
             friction={1.0}
             restitution={0.0}
             onCollisionEnter={(payload) => {
-                if (isDynamic) {
-                    playClackSound(1);
-                }
+                playClackSound(1);
             }}
         >
             <CuboidCollider args={[width * BRICK_WIDTH / 2, height / 2, depth * BRICK_WIDTH / 2]} position={[0, 0, 0]} />

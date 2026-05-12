@@ -1,8 +1,8 @@
-import { Environment, PointerLockControls, ContactShadows, Html } from '@react-three/drei';
+import { Environment, PointerLockControls, Html } from '@react-three/drei';
 import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier';
-import { EffectComposer, N8AO, Bloom, Vignette, TiltShift2 } from '@react-three/postprocessing';
-import { useEffect, useState } from 'react';
-import { Brick } from './components/Brick';
+import { EffectComposer, N8AO, Bloom, Vignette } from '@react-three/postprocessing';
+import { useMemo } from 'react';
+import { Brick, getBlockHeight, BRICK_WIDTH, InstancedBricks } from './components/Brick';
 import { BLOCK_DIMENSIONS, useStore } from './store';
 import { Player } from './components/Player';
 import { MobileLookControls } from './components/MobileLookControls';
@@ -11,20 +11,47 @@ export function Scene() {
   const blocks = useStore((state) => state.blocks);
   const performanceMode = useStore((state) => state.performanceMode);
   const isMobile = useStore((state) => state.isMobile);
-  const [rotation, setRotation] = useState(0);
 
+  const colliders = useMemo(() => {
+    return blocks.map((b) => {
+      const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
+      const h = getBlockHeight(d.shape, d.isPlate);
+      return (
+        <CuboidCollider 
+          key={b.id + "_col"} 
+          args={[d.w * BRICK_WIDTH / 2, h / 2, d.d * BRICK_WIDTH / 2]} 
+          position={b.position} 
+          rotation={[b.rotation[0], b.rotation[1], b.rotation[2]]}
+        />
+      );
+    });
+  }, [blocks]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'r' || e.key === 'R') {
-        setRotation((r) => r === 0 ? Math.PI / 2 : 0);
-      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
-        useStore.getState().undo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  const furnitureBricks = useMemo(() => {
+    return blocks.filter((b) => {
+      const d = BLOCK_DIMENSIONS[b.type];
+      const shape = d?.shape || 'brick';
+      return shape !== 'brick' && shape !== 'cylinder';
+    }).map((b) => {
+      const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
+      return (
+        <Brick
+          key={b.id}
+          id={b.id}
+          width={d.w}
+          depth={d.d}
+          isPlate={d.isPlate}
+          shape={d.shape}
+          position={b.position}
+          rotation={b.rotation}
+          color={b.color}
+          isDynamic={false}
+          isGhost={false}
+          performanceMode={performanceMode}
+        />
+      );
+    });
+  }, [blocks, performanceMode]);
 
   return (
     <>
@@ -48,12 +75,14 @@ export function Scene() {
       <fog attach="fog" args={['#bae6fd', 10, 100]} />
 
       <Physics>
-        <Player rotation={rotation} />
+        <Player />
 
         <group>
-          {/* Ground */}
+          {/* Ground & ALL Static Colliders */}
           <RigidBody type="fixed" colliders={false} position={[0, 0, 0]}>
             <CuboidCollider args={[100, 0.05, 100]} position={[0, -0.05, 0]} />
+            {colliders}
+
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
               <planeGeometry args={[200, 200]} />
               <meshStandardMaterial 
@@ -64,25 +93,8 @@ export function Scene() {
             </mesh>
           </RigidBody>
 
-          {blocks.map((b) => {
-            const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
-            return (
-              <Brick
-                key={b.id}
-                id={b.id}
-                width={d.w}
-                depth={d.d}
-                isPlate={d.isPlate}
-                shape={d.shape}
-                position={b.position}
-                rotation={b.rotation}
-                color={b.color}
-                isDynamic={false}
-                isGhost={false}
-                performanceMode={performanceMode}
-              />
-            );
-          })}
+          <InstancedBricks blocks={blocks} performanceMode={performanceMode} />
+          {furnitureBricks}
         </group>
       </Physics>
 

@@ -15,7 +15,7 @@ function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-export function Player({ rotation }: { rotation: number }) {
+export function Player() {
   const ref = useRef<any>(null);
   const movement = useKeyboard();
   const { camera, scene } = useThree();
@@ -23,9 +23,22 @@ export function Player({ rotation }: { rotation: number }) {
   const [ghostPos, setGhostPos] = useState<[number, number, number] | null>(null);
   const [isGhostInvalid, setIsGhostInvalid] = useState(false);
   const [isFlying, setIsFlying] = useState(false);
+  const [rotation, setRotation] = useState(0);
   const lastJumpPress = useRef(0);
   const wasJump = useRef(false);
-  
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'r' || e.key === 'R') {
+        setRotation((r) => r === 0 ? Math.PI / 2 : 0);
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+        useStore.getState().undo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const selectedType = useStore((state) => state.selectedType);
   const selectedColor = useStore((state) => state.selectedColor);
   const addBlock = useStore((state) => state.addBlock);
@@ -228,7 +241,7 @@ export function Player({ rotation }: { rotation: number }) {
     camera.position.set(pos.x, pos.y + 1.2, pos.z);
 
     const nowTime = performance.now();
-    const fpsLimit = (performanceMode || isMobile) ? 66 : 0;
+    const fpsLimit = (performanceMode || isMobile) ? 66 : 33;
     if (nowTime - lastGhostUpdate.current < fpsLimit) return;
     lastGhostUpdate.current = nowTime;
 
@@ -404,9 +417,13 @@ export function Player({ rotation }: { rotation: number }) {
          if (hit) {
             let obj = hit.object;
             let id = null;
-            while (obj && !id) {
-                if (obj.userData?.id) id = obj.userData.id;
-                obj = obj.parent;
+            if (obj instanceof THREE.InstancedMesh && hit.instanceId !== undefined) {
+               id = obj.userData?.blocks?.[hit.instanceId]?.id;
+            } else {
+               while (obj && !id) {
+                   if (obj.userData?.id) id = obj.userData.id;
+                   obj = obj.parent as any;
+               }
             }
             if (id) {
                 removeBlock(id);

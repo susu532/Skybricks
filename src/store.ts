@@ -366,8 +366,7 @@ export const useStore = create<AppState>()(
         for (let i = 0; i < 4; i++) {
             add('plant', -28, floorY + 1.0, -20 + i * 16 + mZ, 0, '#006400');
             add('plant', 28, floorY + 1.0, -20 + i * 16 + mZ, 0, '#006400');
-            add('cylinder_1x1', -28, floorY + 2.2, -20 + i * 16 + mZ, 0, '#004d00'); // Topiary cone
-            add('cylinder_1x1', 28, floorY + 2.2, -20 + i * 16 + mZ, 0, '#004d00');
+            
         }
 
         // Mansion Exterior Upgrades (Giant glass windows replacing some walls)
@@ -420,11 +419,9 @@ export const useStore = create<AppState>()(
         add('heart_rug', -20, floorY + 0.1, cz - 10, 0, '#00AEEF'); 
         add('heart_rug', -24, floorY + 0.1, cz - 14, 0, '#00AEEF');
         add('heart_rug', -16, floorY + 0.1, cz - 14, 0, '#00AEEF');
-        add('plate_8x8', -20, floorY, cz - 12, 0, '#00AEEF');
+        
         // Pool borders
-        for(let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-             add('plant', -20 + Math.cos(a)*10, floorY + 1.0, cz - 12 + Math.sin(a)*10, 0, cBMagenta);
-        }
+       
 
         // Luxury Pool Deck
         for(let x = -36; x < -12; x += 8) {
