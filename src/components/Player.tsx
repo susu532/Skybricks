@@ -51,11 +51,19 @@ export function Player() {
   const height = getBlockHeight(dims.shape, dims.isPlate);
 
   const getNearbyBlocks = (point: THREE.Vector3) => {
-      return useStore.getState().blocks.filter(b => {
-          return Math.abs(b.position[0] - point.x) < 15 &&
-                 Math.abs(b.position[1] - point.y) < 15 &&
-                 Math.abs(b.position[2] - point.z) < 15;
-      });
+      const blocks = useStore.getState().blocks;
+      const pointX = point.x, pointY = point.y, pointZ = point.z;
+      // Use faster traditional loop
+      const nearby = [];
+      for (let i = 0; i < blocks.length; i++) {
+          const b = blocks[i];
+          if (Math.abs(b.position[0] - pointX) < 8 &&
+              Math.abs(b.position[1] - pointY) < 8 &&
+              Math.abs(b.position[2] - pointZ) < 8) {
+              nearby.push(b);
+          }
+      }
+      return nearby;
   };
 
   const checkCollision = (pos: number[], nearbyBlocks: any[]) => {

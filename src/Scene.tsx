@@ -1,5 +1,5 @@
 import { Environment, PointerLockControls, Html } from '@react-three/drei';
-import { Physics, CuboidCollider, RigidBody } from '@react-three/rapier';
+import { Physics, CuboidCollider, RigidBody, InstancedRigidBodies } from '@react-three/rapier';
 import { EffectComposer, N8AO, Bloom, Vignette } from '@react-three/postprocessing';
 import { useMemo } from 'react';
 import { Brick, getBlockHeight, BRICK_WIDTH, InstancedBricks } from './components/Brick';
@@ -12,19 +12,26 @@ export function Scene() {
   const performanceMode = useStore((state) => state.performanceMode);
   const isMobile = useStore((state) => state.isMobile);
 
-  const colliders = useMemo(() => {
-    return blocks.map((b) => {
+  const instancedColliders = useMemo(() => {
+    const groups = new Map<string, { w: number, d: number, h: number, instances: any[] }>();
+    blocks.forEach((b) => {
       const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
       const h = getBlockHeight(d.shape, d.isPlate);
-      return (
-        <CuboidCollider 
-          key={b.id + "_col"} 
-          args={[d.w * BRICK_WIDTH / 2, h / 2, d.d * BRICK_WIDTH / 2]} 
-          position={b.position} 
-          rotation={[b.rotation[0], b.rotation[1], b.rotation[2]]}
-        />
-      );
+      // Small optimization: we don't need colliders for rugs and tiny decorative things
+      if (h < 0.3) return; 
+      
+      const key = `${d.w}_${d.d}_${h}`;
+      if (!groups.has(key)) {
+        groups.set(key, { w: d.w, d: d.d, h: h, instances: [] });
+      }
+      const g = groups.get(key)!;
+      g.instances.push({
+        key: g.instances.length,
+        position: [b.position[0], b.position[1], b.position[2]],
+        rotation: [b.rotation[0], b.rotation[1], b.rotation[2]]
+      });
     });
+    return Array.from(groups.values());
   }, [blocks]);
 
   const furnitureBricks = useMemo(() => {
@@ -81,8 +88,6 @@ export function Scene() {
           {/* Ground & ALL Static Colliders */}
           <RigidBody type="fixed" colliders={false} position={[0, 0, 0]}>
             <CuboidCollider args={[100, 0.05, 100]} position={[0, -0.05, 0]} />
-            {colliders}
-
             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.001, 0]}>
               <planeGeometry args={[200, 200]} />
               <meshStandardMaterial 
@@ -92,6 +97,20 @@ export function Scene() {
               />
             </mesh>
           </RigidBody>
+
+          {instancedColliders.map((g, i) => (
+            <InstancedRigidBodies 
+              key={i} 
+              instances={g.instances}
+              type="fixed" 
+              colliders="cuboid"
+            >
+               <instancedMesh args={[undefined, undefined, g.instances.length]}>
+                 <boxGeometry args={[g.w * BRICK_WIDTH, g.h, g.d * BRICK_WIDTH]} />
+                 <meshBasicMaterial visible={false} />
+               </instancedMesh>
+            </InstancedRigidBodies>
+          ))}
 
           <InstancedBricks blocks={blocks} performanceMode={performanceMode} />
           {furnitureBricks}

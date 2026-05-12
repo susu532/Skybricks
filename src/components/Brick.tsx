@@ -293,14 +293,18 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
                 <mesh position={[0, -height/2 + 0.3, 0]} material={material}>
                     <cylinderGeometry args={[0.45, 0.35, 0.6]} />
                 </mesh>
-                <mesh position={[0, -height/2 + 0.65, 0]} material={material}>
-                    <cylinderGeometry args={[0.5, 0.45, 0.15]} />
-                </mesh>
-                {/* Soil */}
-                <mesh position={[0, -height/2 + 0.6, 0]}>
-                    <cylinderGeometry args={[0.4, 0.4, 0.05]} />
-                    <meshStandardMaterial color="#3d2b1f" roughness={1} />
-                </mesh>
+                {!performanceMode && (
+                  <>
+                    <mesh position={[0, -height/2 + 0.65, 0]} material={material}>
+                        <cylinderGeometry args={[0.5, 0.45, 0.15]} />
+                    </mesh>
+                    {/* Soil */}
+                    <mesh position={[0, -height/2 + 0.6, 0]}>
+                        <cylinderGeometry args={[0.4, 0.4, 0.05]} />
+                        <meshStandardMaterial color="#3d2b1f" roughness={1} />
+                    </mesh>
+                  </>
+                )}
                 {/* Stem */}
                 <mesh position={[0, -height/2 + 1.0, 0]}>
                     <cylinderGeometry args={[0.08, 0.1, 0.8]} />
@@ -310,33 +314,37 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
                 <group position={[0, height/2 - 0.5, 0]}>
                     {/* Main clump */}
                     <mesh position={[0, 0, 0]} scale={[1, 0.9, 1]}>
-                        <sphereGeometry args={[0.7, 12, 12]} />
+                        <sphereGeometry args={[0.7, performanceMode ? 8 : 12, performanceMode ? 8 : 12]} />
                         <meshStandardMaterial color="#166534" roughness={0.9} />
                     </mesh>
-                    {/* Secondary clumps */}
-                    <mesh position={[0.4, 0.3, 0.4]} scale={[0.8, 0.7, 0.8]}>
-                        <sphereGeometry args={[0.5, 8, 8]} />
-                        <meshStandardMaterial color="#15803d" roughness={0.8} />
-                    </mesh>
-                    <mesh position={[-0.4, 0.4, -0.4]} scale={[0.7, 0.8, 0.7]}>
-                        <sphereGeometry args={[0.5, 8, 8]} />
-                        <meshStandardMaterial color="#14532d" roughness={0.8} />
-                    </mesh>
-                    
-                    {/* Side leaves/highlights using selected color if it's not green, otherwise a bright green */}
-                    {[0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].map((angle, i) => (
-                        <group key={i} rotation={[0, angle, 0]}>
-                            <mesh position={[0.5, 0.1, 0]} rotation={[0, 0, -Math.PI/4]} scale={[0.9, 0.3, 0.7]}>
-                                <sphereGeometry args={[0.5, 8, 8]} />
-                                <meshStandardMaterial color={color.toLowerCase() === '#006400' ? "#4ade80" : color} roughness={0.8} />
-                            </mesh>
-                        </group>
-                    ))}
-                    {/* Top leaf/bud */}
-                    <mesh position={[0, 1.0, 0]} scale={[0.4, 0.6, 0.4]}>
-                        <sphereGeometry args={[0.5, 8, 8]} />
-                        <meshStandardMaterial color="#86efac" roughness={0.8} />
-                    </mesh>
+                    {!performanceMode && (
+                      <>
+                        {/* Secondary clumps */}
+                        <mesh position={[0.4, 0.3, 0.4]} scale={[0.8, 0.7, 0.8]}>
+                            <sphereGeometry args={[0.5, 8, 8]} />
+                            <meshStandardMaterial color="#15803d" roughness={0.8} />
+                        </mesh>
+                        <mesh position={[-0.4, 0.4, -0.4]} scale={[0.7, 0.8, 0.7]}>
+                            <sphereGeometry args={[0.5, 8, 8]} />
+                            <meshStandardMaterial color="#14532d" roughness={0.8} />
+                        </mesh>
+                        
+                        {/* Side leaves/highlights using selected color if it's not green, otherwise a bright green */}
+                        {[0, Math.PI * 0.5, Math.PI, Math.PI * 1.5].map((angle, i) => (
+                            <group key={i} rotation={[0, angle, 0]}>
+                                <mesh position={[0.5, 0.1, 0]} rotation={[0, 0, -Math.PI/4]} scale={[0.9, 0.3, 0.7]}>
+                                    <sphereGeometry args={[0.5, 8, 8]} />
+                                    <meshStandardMaterial color={color.toLowerCase() === '#006400' ? "#4ade80" : color} roughness={0.8} />
+                                </mesh>
+                            </group>
+                        ))}
+                        {/* Top leaf/bud */}
+                        <mesh position={[0, 1.0, 0]} scale={[0.4, 0.6, 0.4]}>
+                            <sphereGeometry args={[0.5, 8, 8]} />
+                            <meshStandardMaterial color="#86efac" roughness={0.8} />
+                        </mesh>
+                      </>
+                    )}
                 </group>
             </group>
         );
