@@ -91,7 +91,7 @@ export function Scene() {
       <fog attach="fog" args={['#bae6fd', 10, 100]} />
 
       <Physics>
-        <Player />
+        <Player activeBlocks={activeBlocks} />
 
         <group>
           {/* Ground & ALL Static Colliders */}

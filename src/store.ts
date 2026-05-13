@@ -184,8 +184,16 @@ export const useStore = create<AppState>()(
       const generateHouse = (): BlockData[] => {
         const blocks: BlockData[] = [];
         let idCounter = 0;
+        
+        const isMobileDevice = typeof window !== 'undefined' ? 
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+            (window.innerWidth < 768 && (typeof navigator !== 'undefined' && Math.max(navigator.maxTouchPoints, 0) > 0)) ||
+            (typeof navigator !== 'undefined' && Math.max(navigator.maxTouchPoints, 0) > 0 && /Macintosh/.test(navigator.userAgent))
+            : false;
+
         const mZ = -40; // Mansion Z offset
         const add = (type: BlockType, x: number, y: number, z: number, rotY: number, color: string) => {
+          if (isMobileDevice) return;
           blocks.push({ id: `mansion_${idCounter++}`, type, position: [x, y, z], rotation: [0, rotY, 0], color });
         };
 

@@ -15,7 +15,7 @@ function generateId() {
   return Math.random().toString(36).substring(2, 9);
 }
 
-export function Player() {
+export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   const ref = useRef<any>(null);
   const movement = useKeyboard();
   const { camera, scene } = useThree();
@@ -51,15 +51,12 @@ export function Player() {
   const height = getBlockHeight(dims.shape, dims.isPlate);
 
   const getNearbyBlocks = (point: THREE.Vector3) => {
-      const blocks = useStore.getState().blocks;
-      const isWindowMobile = useStore.getState().isMobile;
       const pointX = point.x, pointY = point.y, pointZ = point.z;
       // Use faster traditional loop
       const nearby = [];
-      for (let i = 0; i < blocks.length; i++) {
-          const b = blocks[i];
-          if (isWindowMobile && b.id.startsWith('mansion_')) continue;
-          if (!isWindowMobile && b.id.startsWith('mobile_barbie_')) continue;
+      const len = activeBlocks.length;
+      for (let i = 0; i < len; i++) {
+          const b = activeBlocks[i];
           if (Math.abs(b.position[0] - pointX) < 8 &&
               Math.abs(b.position[1] - pointY) < 8 &&
               Math.abs(b.position[2] - pointZ) < 8) {
