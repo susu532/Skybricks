@@ -18,7 +18,7 @@ function generateId() {
 export function Player() {
   const ref = useRef<any>(null);
   const movement = useKeyboard();
-  const { camera, scene } = useThree();
+  const { camera, scene, gl } = useThree();
   const { world, rapier } = useRapier();
   const [ghostPos, setGhostPos] = useState<[number, number, number] | null>(null);
   const [isGhostInvalid, setIsGhostInvalid] = useState(false);
@@ -189,6 +189,102 @@ export function Player() {
 
   const lastGhostUpdate = useRef(0);
 
+  const getTargetPos = (start: THREE.Vector3, dir: THREE.Vector3, currentGhostY: number) => {
+    const ray = new rapier.Ray(start, dir);
+    const threeRay = new THREE.Ray(start, dir);
+    const playerCollider = ref.current?.collider(0); 
+    
+    const maxRayDist = isMobile ? 100 : 10;
+    const hit = world.castRayAndGetNormal(
+        ray, 
+        maxRayDist, 
+        true, 
+        undefined, 
+        undefined, 
+        playerCollider
+    );
+    
+    const basePointsToSearch: {point: THREE.Vector3, normal: THREE.Vector3}[] = [];
+
+    if (hit) {
+        const hitPoint = threeRay.at(hit.timeOfImpact, new THREE.Vector3());
+        basePointsToSearch.push({
+            point: new THREE.Vector3(hitPoint.x, hitPoint.y, hitPoint.z), 
+            normal: new THREE.Vector3().copy(hit.normal as any)
+        });
+    }
+
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentGhostY);
+    const hitPlane = new THREE.Vector3();
+    if (threeRay.intersectPlane(plane, hitPlane)) {
+        if (hitPlane.distanceTo(start) < maxRayDist) {
+            basePointsToSearch.push({point: hitPlane, normal: new THREE.Vector3(0, 1, 0)});
+        }
+    }
+
+    let targetPos: [number, number, number] | null = null;
+    let minScore = Infinity;
+
+    const hitPointForSearch = hit ? threeRay.at(hit.timeOfImpact, new THREE.Vector3()) : null;
+    const searchCenter = hitPointForSearch ? new THREE.Vector3(hitPointForSearch.x, hitPointForSearch.y, hitPointForSearch.z) : hitPlane;
+    const nearbyBlocks = getNearbyBlocks(searchCenter);
+
+    const evaluated = new Set<string>();
+
+    const evaluatePos = (testP: number[], queryPoint: THREE.Vector3) => {
+        if (testP[1] - height / 2 < -0.01) return;
+        
+        const key = Math.round(testP[0]*10) + '_' + Math.round(testP[1]*10) + '_' + Math.round(testP[2]*10);
+        if (evaluated.has(key)) return;
+        evaluated.add(key);
+
+        const center = new THREE.Vector3(testP[0], testP[1], testP[2]);
+        const distToCenter = threeRay.distanceSqToPoint(center);
+        
+        const isRot = Math.abs(rotation % Math.PI) > 0.1;
+        const actualW = isRot ? dims.d : dims.w;
+        const actualD = isRot ? dims.w : dims.d;
+        
+        const dX = Math.max(0, Math.abs(queryPoint.x - testP[0]) - actualW / 2.0);
+        const dZ = Math.max(0, Math.abs(queryPoint.z - testP[2]) - actualD / 2.0);
+        const distToBBXZ = dX * dX + dZ * dZ;
+
+        let yPenalty = 0;
+        if (Math.abs(testP[1] - currentGhostY) > 0.1) {
+             yPenalty = Math.abs(testP[1] - currentGhostY) * 20.0;
+        }
+
+        let score = distToBBXZ * 100.0 + distToCenter * 1.0 + yPenalty;
+
+        if (ghostPosRef.current && !isMobile) {
+             const hx = testP[0] - ghostPosRef.current[0];
+             const hy = testP[1] - ghostPosRef.current[1];
+             const hz = testP[2] - ghostPosRef.current[2];
+             if (hx*hx + hy*hy + hz*hz < 0.01) {
+                 score -= 15.0;
+             }
+        }
+
+        if (score >= minScore) return;
+
+        if (checkCollision(testP, nearbyBlocks) && checkSupport(testP, nearbyBlocks)) {
+            minScore = score;
+            targetPos = [testP[0], testP[1], testP[2]];
+        }
+    };
+
+    for (const base of basePointsToSearch) {
+        const p = getSnappedPosition(base.point, base.normal, dims.w, dims.d, height, rotation);
+        evaluatePos(p, base.point);
+        
+        for (const off of searchPattern) {
+            const testP = [p[0] + off[0], p[1] + off[1] * 0.4, p[2] + off[2]];
+            evaluatePos(testP, base.point);
+        }
+    }
+    return targetPos as [number, number, number] | null;
+  };
+
   useFrame((state) => {
     if (!ref.current) return;
     
@@ -261,101 +357,13 @@ export function Player() {
     const start = camera.position.clone();
     const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
     
-    // Rapier Raycast
-    const ray = new rapier.Ray(start, dir);
-    const threeRay = new THREE.Ray(start, dir);
-    const playerCollider = ref.current?.collider(0); 
-    
-    // castRayAndGetNormal(ray, maxToi, solid, collisionGroups, filterFlags, filterCollider)
-    const maxRayDist = isMobile ? 100 : 8;
-    const hit = world.castRayAndGetNormal(
-        ray, 
-        maxRayDist, 
-        true, 
-        undefined, 
-        undefined, 
-        playerCollider
-    );
-    
-    const basePointsToSearch: {point: THREE.Vector3, normal: THREE.Vector3}[] = [];
-
-    if (hit) {
-        const hitPoint = threeRay.at(hit.timeOfImpact, new THREE.Vector3());
-        basePointsToSearch.push({
-            point: new THREE.Vector3(hitPoint.x, hitPoint.y, hitPoint.z), 
-            normal: new THREE.Vector3().copy(hit.normal as any)
-        });
+    if (isMobile) {
+      if (ghostPos) setGhostPos(null);
+      return;
     }
 
     const currentGhostY = ghostPosRef.current ? ghostPosRef.current[1] : height / 2;
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentGhostY);
-    const hitPlane = new THREE.Vector3();
-    if (threeRay.intersectPlane(plane, hitPlane)) {
-        if (hitPlane.distanceTo(start) < maxRayDist) {
-            basePointsToSearch.push({point: hitPlane, normal: new THREE.Vector3(0, 1, 0)});
-        }
-    }
-
-    let targetPos: [number, number, number] | null = null;
-    let minScore = Infinity;
-
-    const hitPointForSearch = hit ? threeRay.at(hit.timeOfImpact, new THREE.Vector3()) : null;
-    const searchCenter = hitPointForSearch ? new THREE.Vector3(hitPointForSearch.x, hitPointForSearch.y, hitPointForSearch.z) : hitPlane;
-    const nearbyBlocks = getNearbyBlocks(searchCenter);
-
-    const evaluated = new Set<string>();
-
-    const evaluatePos = (testP: number[], queryPoint: THREE.Vector3) => {
-        if (testP[1] - height / 2 < -0.01) return;
-        
-        const key = Math.round(testP[0]*10) + '_' + Math.round(testP[1]*10) + '_' + Math.round(testP[2]*10);
-        if (evaluated.has(key)) return;
-        evaluated.add(key);
-
-        const center = new THREE.Vector3(testP[0], testP[1], testP[2]);
-        const distToCenter = threeRay.distanceSqToPoint(center);
-        
-        const isRot = Math.abs(rotation % Math.PI) > 0.1;
-        const actualW = isRot ? dims.d : dims.w;
-        const actualD = isRot ? dims.w : dims.d;
-        
-        const dX = Math.max(0, Math.abs(queryPoint.x - testP[0]) - actualW / 2.0);
-        const dZ = Math.max(0, Math.abs(queryPoint.z - testP[2]) - actualD / 2.0);
-        const distToBBXZ = dX * dX + dZ * dZ;
-
-        let yPenalty = 0;
-        if (ghostPosRef.current && Math.abs(testP[1] - currentGhostY) > 0.1) {
-             yPenalty = Math.abs(testP[1] - currentGhostY) * 20.0;
-        }
-
-        let score = distToBBXZ * 100.0 + distToCenter * 1.0 + yPenalty;
-
-        if (ghostPosRef.current) {
-             const hx = testP[0] - ghostPosRef.current[0];
-             const hy = testP[1] - ghostPosRef.current[1];
-             const hz = testP[2] - ghostPosRef.current[2];
-             if (hx*hx + hy*hy + hz*hz < 0.01) {
-                 score -= 15.0;
-             }
-        }
-
-        if (score >= minScore) return;
-
-        if (checkCollision(testP, nearbyBlocks) && checkSupport(testP, nearbyBlocks)) {
-            minScore = score;
-            targetPos = [testP[0], testP[1], testP[2]];
-        }
-    };
-
-    for (const base of basePointsToSearch) {
-        const p = getSnappedPosition(base.point, base.normal, dims.w, dims.d, height, rotation);
-        evaluatePos(p, base.point);
-        
-        for (const off of searchPattern) {
-            const testP = [p[0] + off[0], p[1] + off[1] * 0.4, p[2] + off[2]];
-            evaluatePos(testP, base.point);
-        }
-    }
+    const targetPos = getTargetPos(start, dir, currentGhostY);
 
     if (targetPos) {
       setGhostPos(prev => {
@@ -456,15 +464,86 @@ export function Player() {
       }
     };
 
+    let pointerDownPos = { x: 0, y: 0 };
+    let pointerDownTime = 0;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      if (!useStore.getState().isMobile) return;
+      pointerDownPos = { x: e.clientX, y: e.clientY };
+      pointerDownTime = performance.now();
+    };
+
+    const handlePointerUp = (e: PointerEvent) => {
+      const state = useStore.getState();
+      if (!state.isMobile) return;
+      
+      const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      const time = performance.now() - pointerDownTime;
+      
+      if (dist > 10 || time > 500) return;
+
+      const ndcX = (e.clientX / window.innerWidth) * 2 - 1;
+      const ndcY = -(e.clientY / window.innerHeight) * 2 + 1;
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera({ x: ndcX, y: ndcY }, camera);
+      
+      const start = raycaster.ray.origin;
+      const dir = raycaster.ray.direction;
+
+      if (state.buildMode === 'build') {
+         const targetPos = getTargetPos(start, dir, height / 2);
+         if (targetPos) {
+            playPlopSound();
+            const newBlock = {
+                id: generateId(),
+                type: selectedType,
+                position: [...targetPos] as [number, number, number],
+                rotation: [0, rotation, 0] as [number, number, number],
+                color: selectedColor,
+            };
+            addBlock(newBlock);
+         }
+      } else {
+         const intersects = raycaster.intersectObjects(scene.children, true);
+         const hit = intersects.find((i: any) => {
+             let obj = i.object;
+             while (obj) {
+                 if (obj.userData?.isGhost || obj.userData?.isPlayer) return false;
+                 obj = obj.parent;
+             }
+             return true;
+         });
+
+         if (hit) {
+            let obj = hit.object;
+            let id = null;
+            if (obj instanceof THREE.InstancedMesh && hit.instanceId !== undefined) {
+               id = obj.userData?.blocks?.[hit.instanceId]?.id;
+            } else {
+               while (obj && !id) {
+                   if (obj.userData?.id) id = obj.userData.id;
+                   obj = obj.parent as any;
+               }
+            }
+            if (id) {
+                removeBlock(id);
+                playPlopSound();
+            }
+         }
+      }
+    };
+
     window.addEventListener('mousedown', handleMouseDown);
-    window.addEventListener('mobile-place', handlePlace);
-    window.addEventListener('mobile-delete', handleDelete);
+    gl.domElement.addEventListener('pointerdown', handlePointerDown);
+    gl.domElement.addEventListener('pointerup', handlePointerUp);
+    
     return () => {
        window.removeEventListener('mousedown', handleMouseDown);
-       window.removeEventListener('mobile-place', handlePlace);
-       window.removeEventListener('mobile-delete', handleDelete);
+       gl.domElement.removeEventListener('pointerdown', handlePointerDown);
+       gl.domElement.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [camera, scene, selectedType, selectedColor, rotation, addBlock, removeBlock, dims.w, dims.d, height, rapier, world]);
+  }, [camera, scene, selectedType, selectedColor, rotation, addBlock, removeBlock, dims.w, dims.d, height, rapier, world, gl]);
 
   return (
     <>
