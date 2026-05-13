@@ -3,7 +3,7 @@ import React, { useMemo, useRef, useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { playClackSound } from '../audio';
-import { BLOCK_DIMENSIONS } from '../store';
+import { BLOCK_DIMENSIONS, useStore } from '../store';
 
 export const BRICK_HEIGHT = 1.2;
 export const BRICK_WIDTH = 1.0;
@@ -116,8 +116,8 @@ const materialCache: Record<string, THREE.Material> = {};
 const ghostMaterialCache: Record<string, THREE.Material> = {};
 const boxGeomCache: Record<string, THREE.BufferGeometry> = {};
 
-export function getGeometry(width: number, depth: number, height: number, shape?: string, performanceMode: boolean = false) {
-  const key = `${width}_${depth}_${height}_${shape || 'brick'}_${performanceMode}`;
+export function getGeometry(width: number, depth: number, height: number, shape?: string, performanceMode: boolean = false, isGhost: boolean = false) {
+  const key = `${width}_${depth}_${height}_${shape || 'brick'}_${performanceMode}_${isGhost}`;
   if (!boxGeomCache[key]) {
       let geom: THREE.BufferGeometry;
       
@@ -139,15 +139,17 @@ export function getGeometry(width: number, depth: number, height: number, shape?
           baseGeom.computeVertexNormals();
           
           const geometries = [baseGeom];
-          let studGeom = new THREE.CylinderGeometry(STUD_RADIUS, STUD_RADIUS, STUD_HEIGHT, performanceMode ? 6 : 16).toNonIndexed();
+          let radialSegments = performanceMode ? 8 : 32;
+          let studGeom = new THREE.CylinderGeometry(STUD_RADIUS, STUD_RADIUS, STUD_HEIGHT, radialSegments).toNonIndexed();
           studGeom.deleteAttribute('uv');
           studGeom.deleteAttribute('normal');
           studGeom.computeVertexNormals();
           
           for (let x = 0; x < width; x++) {
               for (let z = 0; z < depth; z++) {
-                  // Optimization: skip studs for performance mode
-                  if (performanceMode) continue;
+                  // Optimization: skip studs for performance mode on mobile, unless it's a ghost preview
+                  const isMobile = useStore.getState().isMobile;
+                  if (performanceMode && isMobile && !isGhost) continue;
                   
                   const clonedStud = studGeom.clone();
                   clonedStud.translate(
@@ -234,7 +236,7 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
 
     const isFurniture = shape && shape !== 'brick' && shape !== 'cylinder';
 
-    const boxGeom = getGeometry(width, depth, height, shape, performanceMode);
+    const boxGeom = getGeometry(width, depth, height, shape, performanceMode, isGhost);
 
     let content;
     if (shape === 'chair') {

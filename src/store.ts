@@ -398,8 +398,8 @@ export const useStore = create<AppState>()(
         for(let z = mZ + 20; z < cz - 24; z += 8) {
           add('plate_8x8', 0, floorY, z + 4, 0, '#FFD1DC'); // Pinkish marble path
           // Path borders
-          add('plate_1x8', -4, floorY, z + 4, 0, cBGold);
-          add('plate_1x8', 4, floorY, z + 4, 0, cBGold);
+          add('plate_1x8', -4, floorY+0.5, z + 4, 0, cBGold);
+          add('plate_1x8', 4, floorY+0.5, z + 4, 0, cBGold);
           if (z % 16 === 4) {
             // Arches over the pathway
             add('cylinder_1x1', -4, floorY + 1.2, z + 4, 0, cBWhite);
