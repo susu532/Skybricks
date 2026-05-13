@@ -231,7 +231,6 @@ export function UI() {
   const redo = useStore((state) => state.redo);
   const setBlocks = useStore((state) => state.setBlocks);
   const isMobile = useStore((state) => state.isMobile);
-  const buildMode = useStore((state) => state.buildMode);
   const furnitureUnlocked = useStore((state) => state.furnitureUnlocked);
   const unlockFurniture = useStore((state) => state.unlockFurniture);
   const uiHidden = useStore((state) => state.uiHidden);
@@ -449,7 +448,7 @@ export function UI() {
       )}
 
       {/* Crosshair (Desktop only) */}
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 mix-blend-difference pointer-events-none z-30 transition-opacity ${(isMobile || !hasPointerLock) ? 'hidden' : ''}`}>
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 mix-blend-difference pointer-events-none z-30 transition-opacity ${(!hasPointerLock && !isMobile) ? 'hidden' : ''}`}>
         <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white rounded-full"></div>
       </div>
 
@@ -643,13 +642,79 @@ export function UI() {
         {/* Mobile Controls Layer */}
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${(!isMobile || uiHidden) ? 'hidden' : ''}`}>
           
+          {/* Left D-Pad */}
+          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] left-4 landscape:left-12 sm:left-12 pointer-events-none" style={{ left: 'max(1rem, env(safe-area-inset-left))' }}>
+            <div className="flex flex-col items-center gap-1">
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                  onContextMenu={(e) => e.preventDefault()}
+                  onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
+                  onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
+                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
+                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
+                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                  <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7" />
+              </button>
+              <div className="flex gap-1">
+                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                    onContextMenu={(e) => e.preventDefault()}
+                    onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
+                    onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
+                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
+                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
+                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                    <ArrowLeft className="w-5 h-5 sm:w-7 sm:h-7" />
+                </button>
+                <div className="w-12 h-10 sm:w-16 sm:h-14 bg-black/10 rounded-xl border border-white/10" />
+                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                    onContextMenu={(e) => e.preventDefault()}
+                    onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
+                    onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
+                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
+                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
+                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                    <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7" />
+                </button>
+              </div>
+              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                  onContextMenu={(e) => e.preventDefault()}
+                  onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
+                  onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
+                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
+                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
+                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
+                  <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7" />
+              </button>
+            </div>
+          </div>
+
           {/* Right Actions */}
           <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
               <div className="pointer-events-auto flex items-end gap-1.5 sm:gap-2">
-                  <div className="flex flex-col gap-1.5 sm:gap-2">
+                 <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                        onClick={(e) => { e.stopPropagation(); useStore.getState().setBuildMode(buildMode === 'build' ? 'delete' : 'build'); }}
-                        className={`w-12 h-10 sm:w-16 sm:h-14 rounded-xl flex items-center justify-center shadow-md touch-none transition-all active:scale-95 border backdrop-blur-md ${buildMode === 'delete' ? 'bg-rose-500 text-white border-rose-400' : 'bg-white/80 text-rose-500 border-white/40'}`}>
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
+                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
+                        <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
+                        <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
+                 </div>
+                 <div className="flex flex-col gap-1.5 sm:gap-2">
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
+                        className="w-12 h-10 sm:w-16 sm:h-14 bg-rose-500/90 rounded-xl flex items-center justify-center active:bg-rose-600 shadow-md text-white touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
@@ -660,6 +725,14 @@ export function UI() {
                         onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 font-bold" />
+                    </button>
+                 </div>
+                 <div className="flex flex-col justify-end">
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
+                        className="w-16 h-16 sm:w-24 sm:h-24 bg-pink-500 rounded-2xl flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 border-2 border-white/30 backdrop-blur-sm mb-0.5">
+                        <Plus className="w-8 h-8 sm:w-12 sm:h-12" strokeWidth={3} />
                     </button>
                  </div>
               </div>

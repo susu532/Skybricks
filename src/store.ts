@@ -161,8 +161,6 @@ interface AppState {
   uiHidden: boolean;
   setUiHidden: (hidden: boolean | ((prev: boolean) => boolean)) => void;
   isMobile: boolean;
-  buildMode: 'build' | 'delete';
-  setBuildMode: (mode: 'build' | 'delete') => void;
   furnitureUnlocked: boolean;
   hasSeenTutorial: boolean;
   setHasSeenTutorial: (val: boolean) => void;
@@ -684,8 +682,6 @@ export const useStore = create<AppState>()(
     (window.innerWidth < 768 && (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)) ||
     (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)) // For iPad Pro
     : false,
-  buildMode: 'build',
-  setBuildMode: (mode) => set({ buildMode: mode }),
   uiHidden: false,
   setUiHidden: (hidden) => set((state) => ({ uiHidden: typeof hidden === 'function' ? hidden(state.uiHidden) : hidden })),
   performanceMode: true,

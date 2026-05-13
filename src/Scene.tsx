@@ -1,4 +1,4 @@
-import { Environment, PointerLockControls, OrbitControls } from '@react-three/drei';
+import { Environment, PointerLockControls, Html } from '@react-three/drei';
 import { Physics, CuboidCollider, RigidBody, InstancedRigidBodies } from '@react-three/rapier';
 import { EffectComposer, N8AO, Bloom, Vignette } from '@react-three/postprocessing';
 import { useMemo } from 'react';
@@ -12,16 +12,9 @@ export function Scene() {
   const performanceMode = useStore((state) => state.performanceMode);
   const isMobile = useStore((state) => state.isMobile);
 
-  const activeBlocks = useMemo(() => {
-    if (isMobile) {
-      return blocks.filter(b => !b.id.startsWith('mansion_'));
-    }
-    return blocks;
-  }, [blocks, isMobile]);
-
   const instancedColliders = useMemo(() => {
     const groups = new Map<string, { w: number, d: number, h: number, instances: any[] }>();
-    activeBlocks.forEach((b) => {
+    blocks.forEach((b) => {
       const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
       const h = getBlockHeight(d.shape, d.isPlate);
       // Small optimization: we don't need colliders for rugs and tiny decorative things
@@ -39,10 +32,10 @@ export function Scene() {
       });
     });
     return Array.from(groups.values());
-  }, [activeBlocks]);
+  }, [blocks]);
 
   const furnitureBricks = useMemo(() => {
-    return activeBlocks.filter((b) => {
+    return blocks.filter((b) => {
       const d = BLOCK_DIMENSIONS[b.type];
       const shape = d?.shape || 'brick';
       return shape !== 'brick' && shape !== 'cylinder';
@@ -65,23 +58,14 @@ export function Scene() {
         />
       );
     });
-  }, [activeBlocks, performanceMode]);
+  }, [blocks, performanceMode]);
 
   return (
     <>
       {!isMobile ? (
         <PointerLockControls />
       ) : (
-        <OrbitControls 
-          makeDefault 
-          target={[0, 4, -30]}
-          minDistance={5}
-          maxDistance={80}
-          maxPolarAngle={Math.PI / 2 + 0.1}
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-        />
+        <MobileLookControls />
       )}
       <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/brown_photostudio_05_1k.hdr" environmentIntensity={1.2} />
       <directionalLight 
@@ -128,7 +112,7 @@ export function Scene() {
             </InstancedRigidBodies>
           ))}
 
-          <InstancedBricks blocks={activeBlocks} performanceMode={performanceMode} />
+          <InstancedBricks blocks={blocks} performanceMode={performanceMode} />
           {furnitureBricks}
         </group>
       </Physics>
