@@ -178,16 +178,32 @@ export function getBrickMaterial(color: string, isGhost: boolean = false, isInva
   const cache = isGhost ? ghostMaterialCache : materialCache;
   if (!cache[cacheKey]) {
     if (isGhost) {
-      cache[cacheKey] = new THREE.MeshStandardMaterial({
-        color: isInvalid ? '#ff0000' : color,
-        roughness: 0.1,
-        metalness: 0,
-        transparent: true,
-        opacity: isInvalid ? 0.4 : 0.6,
-        depthWrite: false,
-        emissive: isInvalid ? '#ff0000' : color,
-        emissiveIntensity: 0.5,
-      });
+      if (performanceMode) {
+        cache[cacheKey] = new THREE.MeshStandardMaterial({
+          color: isInvalid ? '#ff0000' : color,
+          roughness: 0.1,
+          metalness: 0,
+          transparent: true,
+          opacity: isInvalid ? 0.4 : 0.6,
+          depthWrite: false,
+          emissive: isInvalid ? '#ff0000' : color,
+          emissiveIntensity: 0.5,
+        });
+      } else {
+        cache[cacheKey] = new THREE.MeshPhysicalMaterial({
+          color: isInvalid ? '#ff0000' : color,
+          roughness: 0.15,
+          metalness: 0.05,
+          clearcoat: 0.5,
+          clearcoatRoughness: 0.1,
+          ior: 1.48,
+          transparent: true,
+          opacity: isInvalid ? 0.4 : 0.7,
+          depthWrite: false,
+          emissive: isInvalid ? '#ff0000' : color,
+          emissiveIntensity: 0.3,
+        });
+      }
     } else {
       if (performanceMode) {
         cache[cacheKey] = new THREE.MeshLambertMaterial({

@@ -491,7 +491,7 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
               isDynamic={false}
               isGhost={true}
               isInvalid={isGhostInvalid}
-              performanceMode={true}
+              performanceMode={performanceMode}
             />
         </group>
       )}
