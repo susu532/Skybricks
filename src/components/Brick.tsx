@@ -48,7 +48,7 @@ export function InstancedBricks({ blocks, performanceMode }: { blocks: any[], pe
 
 function InstancedGroup({ group, performanceMode }: any) {
     const meshRef = useRef<THREE.InstancedMesh>(null);
-    const geom = getGeometry(group.w, group.d, group.h, group.shape);
+    const geom = getGeometry(group.w, group.d, group.h, group.shape, performanceMode);
     const mat = getBrickMaterial(group.color, false, false, performanceMode);
     
     useLayoutEffect(() => {
@@ -65,8 +65,8 @@ function InstancedGroup({ group, performanceMode }: any) {
         <instancedMesh
             ref={meshRef}
             args={[geom, mat, group.blocks.length]}
-            castShadow
-            receiveShadow
+            castShadow={!performanceMode}
+            receiveShadow={!performanceMode}
             userData={{ blocks: group.blocks }}
         />
     );
@@ -116,26 +116,39 @@ const materialCache: Record<string, THREE.Material> = {};
 const ghostMaterialCache: Record<string, THREE.Material> = {};
 const boxGeomCache: Record<string, THREE.BufferGeometry> = {};
 
-export function getGeometry(width: number, depth: number, height: number, shape?: string) {
-  const key = `${width}_${depth}_${height}_${shape || 'brick'}`;
+export function getGeometry(width: number, depth: number, height: number, shape?: string, performanceMode: boolean = false) {
+  const key = `${width}_${depth}_${height}_${shape || 'brick'}_${performanceMode}`;
   if (!boxGeomCache[key]) {
       let geom: THREE.BufferGeometry;
       
       if (shape === 'cylinder') {
-          geom = new THREE.CylinderGeometry(width * BRICK_WIDTH / 2 - 0.01, depth * BRICK_WIDTH / 2 - 0.01, height - 0.01, 32);
+          geom = new THREE.CylinderGeometry(width * BRICK_WIDTH / 2 - 0.01, depth * BRICK_WIDTH / 2 - 0.01, height - 0.01, performanceMode ? 12 : 32);
       } else {
-          geom = new RoundedBoxGeometry(width * BRICK_WIDTH - 0.01, height - 0.01, depth * BRICK_WIDTH - 0.01, 2, 0.02);
+          if (performanceMode) {
+              geom = new THREE.BoxGeometry(width * BRICK_WIDTH - 0.01, height - 0.01, depth * BRICK_WIDTH - 0.01);
+          } else {
+              geom = new RoundedBoxGeometry(width * BRICK_WIDTH - 0.01, height - 0.01, depth * BRICK_WIDTH - 0.01, 2, 0.02);
+          }
       }
       
       const isFurniture = shape && shape !== 'brick' && shape !== 'cylinder';
       if (!isFurniture) {
           let baseGeom = geom.toNonIndexed();
           baseGeom.deleteAttribute('uv');
+          baseGeom.deleteAttribute('normal');
+          baseGeom.computeVertexNormals();
+          
           const geometries = [baseGeom];
-          let studGeom = new THREE.CylinderGeometry(STUD_RADIUS, STUD_RADIUS, STUD_HEIGHT, 16).toNonIndexed();
+          let studGeom = new THREE.CylinderGeometry(STUD_RADIUS, STUD_RADIUS, STUD_HEIGHT, performanceMode ? 6 : 16).toNonIndexed();
           studGeom.deleteAttribute('uv');
+          studGeom.deleteAttribute('normal');
+          studGeom.computeVertexNormals();
+          
           for (let x = 0; x < width; x++) {
               for (let z = 0; z < depth; z++) {
+                  // Optimization: skip studs for massive 8x8 plates on mobile since it adds 64 studs per plate
+                  if (performanceMode && width >= 8 && depth >= 8) continue;
+                  
                   const clonedStud = studGeom.clone();
                   clonedStud.translate(
                       (x - width / 2 + 0.5) * BRICK_WIDTH,
@@ -223,7 +236,7 @@ export const Brick = React.memo(function Brick({ width, depth, isPlate, position
 
     const isFurniture = shape && shape !== 'brick' && shape !== 'cylinder';
 
-    const boxGeom = getGeometry(width, depth, height, shape);
+    const boxGeom = getGeometry(width, depth, height, shape, performanceMode);
 
     let content;
     if (shape === 'chair') {

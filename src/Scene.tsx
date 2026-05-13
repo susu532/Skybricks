@@ -74,7 +74,9 @@ export function Scene() {
       ) : (
         <MobileLookControls />
       )}
-      <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/brown_photostudio_05_1k.hdr" environmentIntensity={1.2} />
+      {!performanceMode && (
+        <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/brown_photostudio_05_1k.hdr" environmentIntensity={1.2} />
+      )}
       <directionalLight 
         position={[20, 30, 20]} 
         intensity={0.8} 
