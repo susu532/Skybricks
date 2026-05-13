@@ -447,7 +447,7 @@ export function UI() {
         </div>
       )}
 
-      {/* Crosshair (Desktop only) */}
+      {/* Crosshair (Desktop & Mobile) */}
       <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-80 mix-blend-difference pointer-events-none z-30 transition-opacity ${(!hasPointerLock && !isMobile) ? 'hidden' : ''}`}>
         <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white rounded-full"></div>
       </div>
@@ -642,74 +642,9 @@ export function UI() {
         {/* Mobile Controls Layer */}
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${(!isMobile || uiHidden) ? 'hidden' : ''}`}>
           
-          {/* Left D-Pad */}
-          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] left-4 landscape:left-12 sm:left-12 pointer-events-none" style={{ left: 'max(1rem, env(safe-area-inset-left))' }}>
-            <div className="flex flex-col items-center gap-1">
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
-                  onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                  <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7" />
-              </button>
-              <div className="flex gap-1">
-                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                    onContextMenu={(e) => e.preventDefault()}
-                    onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
-                    onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                    <ArrowLeft className="w-5 h-5 sm:w-7 sm:h-7" />
-                </button>
-                <div className="w-12 h-10 sm:w-16 sm:h-14 bg-black/10 rounded-xl border border-white/10" />
-                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                    onContextMenu={(e) => e.preventDefault()}
-                    onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
-                    onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                    <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7" />
-                </button>
-              </div>
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
-                  onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                  <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7" />
-              </button>
-            </div>
-          </div>
-
           {/* Right Actions */}
           <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
               <div className="pointer-events-auto flex items-end gap-1.5 sm:gap-2">
-                 <div className="flex flex-col gap-1.5 sm:gap-2">
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                        onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
-                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
-                        <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </button>
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                        onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerUp={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
-                        <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
-                    </button>
-                 </div>
                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}

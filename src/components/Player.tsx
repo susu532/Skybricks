@@ -51,7 +51,10 @@ export function Player() {
   const height = getBlockHeight(dims.shape, dims.isPlate);
 
   const getNearbyBlocks = (point: THREE.Vector3) => {
-      const blocks = useStore.getState().blocks;
+      let blocks = useStore.getState().blocks;
+      if (useStore.getState().isMobile) {
+          blocks = blocks.filter(b => !b.id.startsWith('mansion_'));
+      }
       const pointX = point.x, pointY = point.y, pointZ = point.z;
       // Use faster traditional loop
       const nearby = [];
@@ -246,7 +249,9 @@ export function Player() {
       pos.z = -30;
     }
 
-    camera.position.set(pos.x, pos.y + 1.2, pos.z);
+    if (!isMobile) {
+      camera.position.set(pos.x, pos.y + 1.2, pos.z);
+    }
 
     const nowTime = performance.now();
     const fpsLimit = (performanceMode || isMobile) ? 66 : 33;
@@ -262,9 +267,10 @@ export function Player() {
     const playerCollider = ref.current?.collider(0); 
     
     // castRayAndGetNormal(ray, maxToi, solid, collisionGroups, filterFlags, filterCollider)
+    const maxRayDist = isMobile ? 100 : 8;
     const hit = world.castRayAndGetNormal(
         ray, 
-        8, 
+        maxRayDist, 
         true, 
         undefined, 
         undefined, 
@@ -285,7 +291,7 @@ export function Player() {
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentGhostY);
     const hitPlane = new THREE.Vector3();
     if (threeRay.intersectPlane(plane, hitPlane)) {
-        if (hitPlane.distanceTo(start) < 8) {
+        if (hitPlane.distanceTo(start) < maxRayDist) {
             basePointsToSearch.push({point: hitPlane, normal: new THREE.Vector3(0, 1, 0)});
         }
     }
@@ -410,7 +416,7 @@ export function Player() {
          const start = camera.position.clone();
          const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
          
-         const raycaster = new THREE.Raycaster(start, dir, 0, 10);
+         const raycaster = new THREE.Raycaster(start, dir, 0, useStore.getState().isMobile ? 100 : 10);
          const intersects = raycaster.intersectObjects(scene.children, true);
          
          const hit = intersects.find((i: any) => {

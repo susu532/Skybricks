@@ -1,4 +1,4 @@
-import { Environment, PointerLockControls, Html } from '@react-three/drei';
+import { Environment, PointerLockControls, OrbitControls } from '@react-three/drei';
 import { Physics, CuboidCollider, RigidBody, InstancedRigidBodies } from '@react-three/rapier';
 import { EffectComposer, N8AO, Bloom, Vignette } from '@react-three/postprocessing';
 import { useMemo } from 'react';
@@ -72,7 +72,15 @@ export function Scene() {
       {!isMobile ? (
         <PointerLockControls />
       ) : (
-        <MobileLookControls />
+        <OrbitControls 
+          makeDefault 
+          target={[0, 0, 0]}
+          minDistance={5}
+          maxDistance={100}
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={true}
+        />
       )}
       <Environment files="https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/brown_photostudio_05_1k.hdr" environmentIntensity={1.2} />
       <directionalLight 
