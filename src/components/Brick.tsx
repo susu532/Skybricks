@@ -146,8 +146,8 @@ export function getGeometry(width: number, depth: number, height: number, shape?
           
           for (let x = 0; x < width; x++) {
               for (let z = 0; z < depth; z++) {
-                  // Optimization: skip studs for massive 8x8 plates on mobile since it adds 64 studs per plate
-                  if (performanceMode && width >= 8 && depth >= 8) continue;
+                  // Optimization: skip studs for performance mode
+                  if (performanceMode) continue;
                   
                   const clonedStud = studGeom.clone();
                   clonedStud.translate(
@@ -188,10 +188,8 @@ export function getBrickMaterial(color: string, isGhost: boolean = false, isInva
       });
     } else {
       if (performanceMode) {
-        cache[cacheKey] = new THREE.MeshStandardMaterial({
+        cache[cacheKey] = new THREE.MeshLambertMaterial({
           color: color,
-          roughness: 0.4,
-          metalness: 0.0,
         });
       } else {
         cache[cacheKey] = new THREE.MeshPhysicalMaterial({

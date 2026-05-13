@@ -14,7 +14,7 @@ import { useStore } from './store';
 export default function App() {
   useEffect(() => { const handleMouseUp = (e) => { if (e.target instanceof HTMLElement && e.target.tagName === "BUTTON") { e.target.blur(); } }; window.addEventListener("mouseup", handleMouseUp); return () => window.removeEventListener("mouseup", handleMouseUp); }, []);
   const [started, setStarted] = useState(false);
-  const { performanceMode } = useStore();
+  const { performanceMode, isMobile } = useStore();
 
   useEffect(() => {
     // Wait for the SDK to load and register the audio listener
@@ -110,7 +110,7 @@ export default function App() {
       <div className="absolute inset-0 touch-none">
         <Canvas 
           camera={{ position: [0, 8, 15], fov: 60 }}
-          dpr={performanceMode ? (useStore.getState().isMobile ? 0.75 : 1) : Math.min(2, window.devicePixelRatio)}
+          dpr={performanceMode ? (isMobile ? 0.75 : 1) : Math.min(2, window.devicePixelRatio)}
           gl={{ antialias: !performanceMode, powerPreference: "high-performance" }}
         >
           <Scene />
