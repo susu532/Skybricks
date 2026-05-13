@@ -12,9 +12,16 @@ export function Scene() {
   const performanceMode = useStore((state) => state.performanceMode);
   const isMobile = useStore((state) => state.isMobile);
 
+  const activeBlocks = useMemo(() => {
+    if (isMobile) {
+      return blocks.filter(b => !b.id.startsWith('mansion_'));
+    }
+    return blocks;
+  }, [blocks, isMobile]);
+
   const instancedColliders = useMemo(() => {
     const groups = new Map<string, { w: number, d: number, h: number, instances: any[] }>();
-    blocks.forEach((b) => {
+    activeBlocks.forEach((b) => {
       const d = BLOCK_DIMENSIONS[b.type] || { w: 1, d: 1 };
       const h = getBlockHeight(d.shape, d.isPlate);
       // Small optimization: we don't need colliders for rugs and tiny decorative things
@@ -32,10 +39,10 @@ export function Scene() {
       });
     });
     return Array.from(groups.values());
-  }, [blocks]);
+  }, [activeBlocks]);
 
   const furnitureBricks = useMemo(() => {
-    return blocks.filter((b) => {
+    return activeBlocks.filter((b) => {
       const d = BLOCK_DIMENSIONS[b.type];
       const shape = d?.shape || 'brick';
       return shape !== 'brick' && shape !== 'cylinder';
@@ -58,7 +65,7 @@ export function Scene() {
         />
       );
     });
-  }, [blocks, performanceMode]);
+  }, [activeBlocks, performanceMode]);
 
   return (
     <>
@@ -112,7 +119,7 @@ export function Scene() {
             </InstancedRigidBodies>
           ))}
 
-          <InstancedBricks blocks={blocks} performanceMode={performanceMode} />
+          <InstancedBricks blocks={activeBlocks} performanceMode={performanceMode} />
           {furnitureBricks}
         </group>
       </Physics>
