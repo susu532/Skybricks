@@ -668,6 +668,72 @@ export const useStore = create<AppState>()(
         add('plant', -8, f2Y + 1.0, cz - 8, 0, cBMagenta);
         add('plant', 8, f2Y + 1.0, cz - 8, 0, cBMagenta);
 
+        // --- Mobile Barbie House ---
+        const addMobile = (type: BlockType, x: number, y: number, z: number, rotY: number, color: string) => {
+          blocks.push({ id: `mobile_barbie_${idCounter++}`, type, position: [x, y, z], rotation: [0, rotY, 0], color });
+        };
+        const mbZ = -36; // Center near player spawn [0, 8, -30]
+        const cMBPink = '#FA31A7';
+        const cMBLightPink = '#FFB6C1';
+        const cMBWhite = '#FFFFFF';
+        
+        // Grass base for mobile
+        for (let x = -16; x < 16; x += 8) {
+          for (let z = mbZ - 16; z < mbZ + 16; z += 8) {
+            addMobile('plate_8x8', x + 4, 0.2, z + 4, 0, cGrass);
+          }
+        }
+
+        const mbFloorY = 0.6;
+        // Floor plate
+        for (let x = -8; x < 8; x += 4) {
+          for (let z = mbZ - 8; z < mbZ + 8; z += 4) {
+            addMobile('plate_4x4', x + 2, mbFloorY, z + 2, 0, '#FFD1DC');
+          }
+        }
+        
+        // Walls
+        const mbWallH = 5;
+        for (let h = 0; h < mbWallH; h++) {
+          const y = mbFloorY + 0.2 + h * 1.2 + 0.6;
+          // Back Wall
+          for(let x=-8; x<8; x+=4) {
+             addMobile('2x4', x + 2, y, mbZ - 7, Math.PI/2, cMBPink);
+          }
+          // Front Wall (with door)
+          for(let x=-8; x<8; x+=4) {
+             if (h < 3 && (x === -4 || x === 0)) continue; // door gap
+             addMobile('2x4', x + 2, y, mbZ + 7, Math.PI/2, cMBPink);
+          }
+          // Sides
+          for(let z=mbZ - 4; z<mbZ + 4; z+=4) {
+             addMobile('2x4', -7, y, z + 2, 0, cMBLightPink);
+             addMobile('2x4', 7, y, z + 2, 0, cMBLightPink);
+          }
+          // Close corners
+          addMobile('2x2', -7, y, mbZ - 5, 0, cMBWhite);
+          addMobile('2x2', 7, y, mbZ - 5, 0, cMBWhite);
+          addMobile('2x2', -7, y, mbZ + 5, 0, cMBWhite);
+          addMobile('2x2', 7, y, mbZ + 5, 0, cMBWhite);
+        }
+
+        // Roof
+        const mbRoofY = mbFloorY + 0.2 + mbWallH * 1.2 + 0.2;
+        for (let x = -12; x < 12; x += 8) {
+          for (let z = mbZ - 12; z < mbZ + 12; z += 8) {
+             addMobile('plate_8x8', x + 4, mbRoofY, z + 4, 0, '#FF00FF');
+          }
+        }
+
+        // Interior Furniture
+        const mfY = mbFloorY + 0.2;
+        addMobile('bed', -4, mfY + 0.6, mbZ - 4, 0, cMBWhite);
+        addMobile('rug_4x4', 0, mfY, mbZ, 0, '#FFB6C1');
+        addMobile('tv', -6, mfY + 2.0, mbZ + 4, Math.PI / 2, '#000000');
+        addMobile('sofa', 0, mfY + 1.0, mbZ + 4, -Math.PI, cMBPink);
+        addMobile('lamp', -6, mfY + 1.0, mbZ - 6, 0, '#FFD700');
+        addMobile('coffee_table', 0, mfY + 0.7, mbZ + 2, 0, '#FFFFFF');
+
         return blocks;
       };
 
