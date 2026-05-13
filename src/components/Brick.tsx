@@ -147,9 +147,9 @@ export function getGeometry(width: number, depth: number, height: number, shape?
           
           for (let x = 0; x < width; x++) {
               for (let z = 0; z < depth; z++) {
-                  // Optimization: skip studs for performance mode on mobile, unless it's a ghost preview
+                  // Optimization: skip studs for performance mode on mobile and ghost previews
                   const isMobile = useStore.getState().isMobile;
-                  if (performanceMode && isMobile && !isGhost) continue;
+                  if (performanceMode && (isMobile || isGhost)) continue;
                   
                   const clonedStud = studGeom.clone();
                   clonedStud.translate(
