@@ -9,6 +9,11 @@
   button {
     touch-action: manipulation;
   }
+  
+  /* Disable double-tap-to-zoom explicitly on UI elements while preserving scrolling */
+  .touch-pan-x {
+    touch-action: pan-x manipulation !important;
+  }
 }
 
 @layer utilities {
