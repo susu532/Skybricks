@@ -22,7 +22,6 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   const { world, rapier } = useRapier();
   const [ghostPos, setGhostPos] = useState<[number, number, number] | null>(null);
   const [isGhostInvalid, setIsGhostInvalid] = useState(false);
-  const [isFlying, setIsFlying] = useState(false);
   const [rotation, setRotation] = useState(0);
   const lastJumpPress = useRef(0);
   const wasJump = useRef(false);
@@ -45,6 +44,8 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   const removeBlock = useStore((state) => state.removeBlock);
   const uiHidden = useStore((state) => state.uiHidden);
   const isMobile = useStore((state) => state.isMobile);
+  const isFlying = useStore((state) => state.isFlying);
+  const setIsFlying = useStore((state) => state.setIsFlying);
   const performanceMode = useStore((state) => state.performanceMode);
   
   const dims = BLOCK_DIMENSIONS[selectedType] || { w: 1, d: 1, shape: 'brick' as const };

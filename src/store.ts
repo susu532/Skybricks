@@ -161,6 +161,8 @@ interface AppState {
   uiHidden: boolean;
   setUiHidden: (hidden: boolean | ((prev: boolean) => boolean)) => void;
   isMobile: boolean;
+  isFlying: boolean;
+  setIsFlying: (isFlying: boolean | ((prev: boolean) => boolean)) => void;
   furnitureUnlocked: boolean;
   hasSeenTutorial: boolean;
   setHasSeenTutorial: (val: boolean) => void;
@@ -756,6 +758,8 @@ export const useStore = create<AppState>()(
     (window.innerWidth < 768 && (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0)) ||
     (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)) // For iPad Pro
     : false,
+  isFlying: false,
+  setIsFlying: (isFlying) => set((state) => ({ isFlying: typeof isFlying === 'function' ? isFlying(state.isFlying) : isFlying })),
   uiHidden: false,
   setUiHidden: (hidden) => set((state) => ({ uiHidden: typeof hidden === 'function' ? hidden(state.uiHidden) : hidden })),
   performanceMode: true,

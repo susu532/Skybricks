@@ -1,4 +1,4 @@
-import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2, Menu, X, Maximize, Eye, EyeOff } from 'lucide-react';
+import { Download, Globe, Undo2, Redo2, Upload, Crosshair, Zap, ZapOff, Armchair, Square, BedDouble, Table, Flower2, Monitor, Lamp, Archive, Library, Tv, Bath, Refrigerator, Microwave, Droplet, Heart, Shirt, Circle, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, CornerRightUp, Plus, Lock, Trash2, Menu, X, Maximize, Eye, EyeOff, Plane } from 'lucide-react';
 import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
@@ -235,6 +235,8 @@ export function UI() {
   const unlockFurniture = useStore((state) => state.unlockFurniture);
   const uiHidden = useStore((state) => state.uiHidden);
   const setUiHidden = useStore((state) => state.setUiHidden);
+  const isFlying = useStore((state) => state.isFlying);
+  const setIsFlying = useStore((state) => state.setIsFlying);
 
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -713,7 +715,14 @@ export function UI() {
                         <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                  </div>
-                 <div className="flex flex-col gap-1.5 sm:gap-2">
+                  <div className="flex flex-col gap-1.5 sm:gap-2">
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
+                        onContextMenu={(e) => e.preventDefault()}
+                        onPointerDown={(e) => { e.preventDefault(); setIsFlying(prev => !prev); playSelectSound(); }}
+                        className={`w-12 h-10 sm:w-16 sm:h-14 rounded-xl flex items-center justify-center shadow-md touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md ${isFlying ? 'bg-pink-500 text-white' : 'bg-white/95 text-slate-700'}`}
+                        title="Toggle Fly Mode">
+                        <Plane className="w-5 h-5 sm:w-6 sm:h-6" />
+                    </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
                         onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
