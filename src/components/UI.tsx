@@ -441,7 +441,7 @@ export function UI() {
       {/* Starting Overlay if not locked (Desktop only) */}
       {(!hasPointerLock && !isMobile && !uiHidden) && (
         <div className="absolute inset-x-0 top-1/4 pointer-events-none flex justify-center z-[60] p-4 transition-opacity animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="bg-white/95 backdrop-blur-md text-pink-500 font-bold py-3 px-8 rounded-full shadow-2xl border border-pink-100 text-xl tracking-tight pointer-events-none animate-pulse">
+          <div className="bg-white/95  text-pink-500 font-bold py-3 px-8 rounded-full shadow-2xl border border-pink-100 text-xl tracking-tight pointer-events-none animate-pulse">
             Click anywhere to resume
           </div>
         </div>
@@ -743,16 +743,16 @@ export function UI() {
             
             {/* Unified Mobile Bottom Bar */}
             {(isMobile && !uiHidden) && (
-              <div className="w-full portrait:max-w-md landscape:w-auto landscape:max-w-[40vw] pointer-events-auto mx-auto flex flex-col items-center bg-white/70 backdrop-blur-md rounded-[1.25rem] shadow-lg border border-white/50 p-1.5 gap-1.5">
+              <div className="w-full portrait:max-w-md landscape:w-auto landscape:max-w-[320px] pointer-events-auto mx-auto flex flex-col items-center bg-white/70 backdrop-blur-md rounded-[1.25rem] shadow-lg border border-white/50 p-1.5 landscape:p-1 gap-1.5 landscape:gap-1">
                 
                 {/* Tab Switcher */}
-                <div className="flex w-full bg-slate-200/50 rounded-xl p-0.5 relative mb-0.5">
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('bricks')} className={`flex-1 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('colors')} className={`flex-1 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
+                <div className="flex w-full bg-slate-200/50 rounded-xl p-0.5 relative mb-0.5 landscape:mb-0">
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('bricks')} className={`flex-1 py-1.5 landscape:py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('colors')} className={`flex-1 py-1.5 landscape:py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
                 </div>
 
                 {mobileTab === 'bricks' && (
-                  <div className="w-full flex flex-col gap-1.5">
+                  <div className="w-full flex flex-col gap-1.5 landscape:gap-1">
                     {/* Category Selector */}
                     <div className="flex items-center w-full justify-between gap-1 overflow-x-auto touch-pan-x hide-scrollbar">
                       {BRICK_CATEGORIES.map((cat) => {
@@ -760,7 +760,7 @@ export function UI() {
                         return (
                           <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={cat.id}
                             onClick={() => setActiveCategory(cat.id as any)}
-                            className={`flex-1 shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 rounded-xl transition-all ${activeCategory === cat.id ? 'bg-pink-500 text-white shadow-sm' : 'bg-white/60 text-slate-600'}`}
+                            className={`flex-1 shrink-0 flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 landscape:py-1 rounded-xl transition-all ${activeCategory === cat.id ? 'bg-pink-500 text-white shadow-sm' : 'bg-white/60 text-slate-600'}`}
                           >
                             <CategoryIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">{cat.label}</span>
@@ -770,12 +770,12 @@ export function UI() {
                     </div>
 
                     {/* Bricks in Selected Category */}
-                    <div className="w-full bg-white/80 rounded-xl shadow-inner border border-black/5 p-1">
+                    <div className="w-full bg-white/80 rounded-xl shadow-inner border border-black/5 p-1 landscape:p-0.5">
                       <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1 snap-x snap-mandatory">
                         {CATEGORIZED_TYPES[activeCategory].map((t) => (
                           <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={t.type}
                             onClick={() => handleTypeSelect(t.type)}
-                            className={`relative shrink-0 w-9 h-9 sm:w-12 sm:h-12 portrait:w-9 portrait:h-9 flex items-center justify-center rounded-lg transition-all snap-center ${
+                            className={`relative shrink-0 w-9 h-9 sm:w-12 sm:h-12 portrait:w-9 portrait:h-9 landscape:w-8 landscape:h-8 flex items-center justify-center rounded-lg transition-all snap-center ${
                               selectedType === t.type
                                 ? 'bg-white shadow-sm border border-pink-300 ring-2 ring-pink-500/20'
                                 : 'bg-transparent hover:bg-black/5'
@@ -784,7 +784,7 @@ export function UI() {
                             {isFurniture(t.type) && !furnitureUnlocked && (
                               <Lock className="absolute top-0.5 right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 text-slate-400 opacity-60 pointer-events-none" />
                             )}
-                            <div className="scale-[0.45] sm:scale-[0.65] portrait:scale-[0.45] flex items-center justify-center w-full h-full pointer-events-none">
+                            <div className="scale-[0.45] sm:scale-[0.65] portrait:scale-[0.45] landscape:scale-[0.4] flex items-center justify-center w-full h-full pointer-events-none">
                               <ModelIcon type={t.type} selected={selectedType === t.type} />
                             </div>
                           </button>
@@ -795,12 +795,12 @@ export function UI() {
                 )}
 
                 {mobileTab === 'colors' && (
-                  <div className="w-full bg-white/80 rounded-xl shadow-inner border border-black/5 p-1">
-                    <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1.5 px-0.5 py-1 snap-x snap-mandatory">
+                  <div className="w-full bg-white/80 rounded-xl shadow-inner border border-black/5 p-1 landscape:p-0.5">
+                    <div className="flex w-full overflow-x-auto touch-pan-x hide-scrollbar gap-1.5 landscape:gap-1 px-0.5 py-1 landscape:py-0.5 snap-x snap-mandatory">
                       {COLORS.map((c) => (
                         <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={c.hex}
                           onClick={() => { setColor(c.hex); playSelectSound(); }}
-                          className={`flex-shrink-0 snap-center w-7 h-7 sm:w-10 sm:h-10 portrait:w-7 portrait:h-7 rounded-full border border-white/40 transition-transform shadow-sm ${
+                          className={`flex-shrink-0 snap-center w-7 h-7 sm:w-10 sm:h-10 portrait:w-7 portrait:h-7 landscape:w-6 landscape:h-6 rounded-full border border-white/40 transition-transform shadow-sm ${
                               selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
                           }`}
                           style={{ backgroundColor: c.hex }}
