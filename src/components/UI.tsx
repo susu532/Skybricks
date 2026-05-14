@@ -464,7 +464,8 @@ export function UI() {
           {/* Mobile Menu Toggle */}
           {isMobile && (
             <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-              onClick={() => {
+              onPointerDown={(e) => {
+                 e.preventDefault();
                  if (uiHidden) setUiHidden(false);
                  setMenuOpen(!menuOpen);
                  window.dispatchEvent(new CustomEvent('mobile-menu-opened'));
@@ -495,7 +496,8 @@ export function UI() {
                   )}
 
                   {isMobile && (
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => {
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => {
+                            e.preventDefault();
                             try {
                                 const el = document.documentElement as any;
                                 if (!document.fullscreenElement) {
@@ -526,10 +528,10 @@ export function UI() {
                   {/* Undo / Redo in top bar on Mobile for better space */}
                   {isMobile && (
                     <>
-                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => undo()} disabled={history.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(history.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-rose-500 border-rose-100 hover:scale-105'}`}>
+                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); undo(); }} disabled={history.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(history.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-rose-500 border-rose-100 hover:scale-105'}`}>
                         <Undo2 className="w-4 h-4" />
                       </button>
-                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => redo()} disabled={redoStack.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(redoStack.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-emerald-500 border-emerald-100 hover:scale-105'}`}>
+                      <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); redo(); }} disabled={redoStack.length === 0} className={`p-2.5 rounded-full shadow-sm border transition-all ${Math.max(redoStack.length, 0) === 0 ? 'bg-slate-100 text-slate-400 border-transparent' : 'bg-white text-emerald-500 border-emerald-100 hover:scale-105'}`}>
                         <Redo2 className="w-4 h-4" />
                       </button>
                       <div className="w-px h-6 bg-slate-300 mx-1"></div>
@@ -537,7 +539,7 @@ export function UI() {
                   )}
 
                   <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                      onClick={() => { togglePerformanceMode(); playSelectSound(); }} 
+                      onPointerDown={(e) => { e.preventDefault(); togglePerformanceMode(); playSelectSound(); }} 
                       className={`p-2.5 sm:p-3 rounded-full shadow-md sm:shadow-lg border transition-all flex items-center justify-center ${performanceMode ? 'bg-amber-100/90 text-amber-600 border-amber-200' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-100'}`}
                       title={performanceMode ? "Disable Performance Mode" : "Enable Performance Mode (Low Graphics)"}
                   >
@@ -572,7 +574,8 @@ export function UI() {
                   {/* Eye Toggle (Mobile) - inside menu section */}
                   {isMobile && (
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                      onClick={() => {
+                      onPointerDown={(e) => {
+                         e.preventDefault();
                          setUiHidden(true);
                          setMenuOpen(false);
                          playSelectSound();
@@ -616,7 +619,7 @@ export function UI() {
                     }
                   }}
                   onClick={() => handleTypeSelect(t.type)}
-                  className={`relative shrink-0 w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] md:w-[64px] md:h-[64px] flex items-center justify-center rounded-xl md:rounded-2xl transition-all ${
+                  className={`relative shrink-0 w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] md:w-[64px] md:h-[64px] flex items-center justify-center rounded-xl md:rounded-2xl transition-all before:absolute before:content-[''] before:inset-[-4px] before:z-0 ${
                       selectedType === t.type
                       ? 'bg-white shadow-md border border-pink-200'
                       : 'bg-transparent hover:bg-white/40'
@@ -747,8 +750,8 @@ export function UI() {
                 
                 {/* Tab Switcher */}
                 <div className="flex w-full bg-slate-200/50 rounded-xl landscape:rounded-lg p-0.5 relative mb-0.5 landscape:mb-0">
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('bricks')} className={`flex-1 py-1.5 landscape:py-0.5 rounded-lg landscape:rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => setMobileTab('colors')} className={`flex-1 py-1.5 landscape:py-0.5 rounded-lg landscape:rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setMobileTab('bricks'); }} onClick={() => setMobileTab('bricks')} className={`flex-1 py-1.5 landscape:py-0.5 rounded-lg landscape:rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setMobileTab('colors'); }} onClick={() => setMobileTab('colors')} className={`flex-1 py-1.5 landscape:py-0.5 rounded-lg landscape:rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
                 </div>
 
                 {mobileTab === 'bricks' && (
@@ -775,7 +778,7 @@ export function UI() {
                         {CATEGORIZED_TYPES[activeCategory].map((t) => (
                           <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={t.type}
                             onClick={() => handleTypeSelect(t.type)}
-                            className={`relative shrink-0 w-9 h-9 sm:w-12 sm:h-12 portrait:w-9 portrait:h-9 landscape:w-7 landscape:h-7 flex items-center justify-center rounded-lg landscape:rounded-md transition-all snap-center ${
+                            className={`relative shrink-0 w-9 h-9 sm:w-12 sm:h-12 portrait:w-9 portrait:h-9 landscape:w-7 landscape:h-7 flex items-center justify-center rounded-lg landscape:rounded-md transition-all snap-center before:absolute before:content-[''] before:inset-[-6px] before:z-0 ${
                               selectedType === t.type
                                 ? 'bg-white shadow-sm border border-pink-300 ring-2 ring-pink-500/20'
                                 : 'bg-transparent hover:bg-black/5'
@@ -800,7 +803,7 @@ export function UI() {
                       {COLORS.map((c) => (
                         <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={c.hex}
                           onClick={() => { setColor(c.hex); playSelectSound(); }}
-                          className={`flex-shrink-0 snap-center w-7 h-7 sm:w-10 sm:h-10 portrait:w-7 portrait:h-7 landscape:w-5 landscape:h-5 rounded-full border border-white/40 transition-transform shadow-sm ${
+                          className={`relative flex-shrink-0 snap-center w-7 h-7 sm:w-10 sm:h-10 portrait:w-7 portrait:h-7 landscape:w-5 landscape:h-5 rounded-full border border-white/40 transition-transform shadow-sm before:absolute before:content-[''] before:inset-[-8px] before:z-0 ${
                               selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
                           }`}
                           style={{ backgroundColor: c.hex }}
@@ -822,7 +825,7 @@ export function UI() {
                     {COLORS.map((c) => (
                         <button tabIndex={-1} onFocus={(e) => e.target.blur()} key={c.hex}
                         onClick={() => { setColor(c.hex); playSelectSound(); }}
-                        className={`flex-shrink-0 snap-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-white/40 transition-transform shadow-sm ${
+                        className={`relative flex-shrink-0 snap-center w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full border border-white/40 transition-transform shadow-sm before:absolute before:content-[''] before:inset-[-8px] before:z-0 ${
                             selectedColor === c.hex ? 'border-white scale-110 shadow-md ring-2 ring-black/80 z-10' : ''
                         }`}
                         style={{ backgroundColor: c.hex }}
@@ -835,7 +838,7 @@ export function UI() {
                 {/* Desktop Action controls (Undo / Redo + Show/Hide) */}
                 <div className="bg-white/90 backdrop-blur-xl p-2 rounded-full shadow-xl border border-white/50 flex flex-row items-center shrink-0 ml-2 pointer-events-auto transition-all">
                     <div className={`flex items-center gap-1 p-1 bg-slate-100/50 rounded-full ${uiHidden ? 'hidden' : ''}`}>
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => undo()}
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); undo(); }}
                         disabled={history.length === 0}
                         className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${
                         history.length === 0
@@ -846,7 +849,7 @@ export function UI() {
                     >
                         <Undo2 className="w-5 h-5" />
                     </button>
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => redo()}
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); redo(); }}
                         disabled={redoStack.length === 0}
                         className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${
                         redoStack.length === 0
@@ -859,7 +862,7 @@ export function UI() {
                     </button>
                     </div>
                     <div className={`w-px h-8 bg-slate-300/50 mx-2 ${uiHidden ? 'hidden' : ''}`}></div>
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={() => { setUiHidden((prev: boolean) => !prev); playSelectSound(); }}
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setUiHidden((prev: boolean) => !prev); playSelectSound(); }}
                         className={`flex items-center justify-center w-12 h-12 rounded-full transition-all bg-white text-slate-700 shadow-sm hover:scale-105 active:scale-95 border border-slate-200`}
                         title={uiHidden ? 'Show UI' : 'Hide UI'}
                     >
