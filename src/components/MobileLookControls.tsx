@@ -69,7 +69,7 @@ export function MobileLookControls() {
       lastTouchX = touchX;
       lastTouchY = touchY;
 
-      const movementSpeed = 0.003;
+      const movementSpeed = 0.005;
 
       euler.current.y -= movementX * movementSpeed;
       euler.current.x -= movementY * movementSpeed;

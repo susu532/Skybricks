@@ -2,7 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { RigidBody, CapsuleCollider, useRapier } from '@react-three/rapier';
 import { useEffect, useRef, useState, useMemo } from 'react';
 import * as THREE from 'three';
-import { useInput } from '../hooks/useInput';
+import { useKeyboard } from '../hooks/useKeyboard';
 import { useStore, BLOCK_DIMENSIONS, BlockType } from '../store';
 import { getSnappedPosition } from '../utils';
 import { Brick, PLATE_HEIGHT, BRICK_HEIGHT, getBlockHeight } from './Brick';
@@ -10,27 +10,6 @@ import { playPlopSound, playJumpSound } from '../audio';
 
 const SPEED = 8;
 const JUMP_FORCE = 6;
-const CHUNK_SIZE = 8;
-
-const _frontVector = new THREE.Vector3();
-const _sideVector = new THREE.Vector3();
-const _direction = new THREE.Vector3();
-const _start = new THREE.Vector3();
-const _dir = new THREE.Vector3();
-const _rayDir = { x: 0, y: 0, z: 0 };
-const _rayOrigin = { x: 0, y: 0, z: 0 };
-const _threeRay = new THREE.Ray();
-const _planeNormal = new THREE.Vector3(0, 1, 0);
-const _plane = new THREE.Plane(_planeNormal, 0);
-const _hitPlane = new THREE.Vector3();
-const _hitPoint = new THREE.Vector3();
-const _searchCenter = new THREE.Vector3();
-const _evalCenter = new THREE.Vector3();
-const _evaluated = new Set<string>();
-const _basePoints = [
-   { point: new THREE.Vector3(), normal: new THREE.Vector3() },
-   { point: new THREE.Vector3(), normal: new THREE.Vector3() }
-];
 
 function generateId() {
   return Math.random().toString(36).substring(2, 9);
@@ -38,7 +17,7 @@ function generateId() {
 
 export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   const ref = useRef<any>(null);
-  const getInput = useInput();
+  const movement = useKeyboard();
   const { camera, scene } = useThree();
   const { world, rapier } = useRapier();
   const [ghostPos, setGhostPos] = useState<[number, number, number] | null>(null);
@@ -69,61 +48,20 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   const setIsFlying = useStore((state) => state.setIsFlying);
   const performanceMode = useStore((state) => state.performanceMode);
   
-  const mobileActions = useStore((state) => state.mobileActions);
-  const [wasRotating, setWasRotating] = useState(false);
-  
-  useEffect(() => {
-    if (mobileActions.rotate && !wasRotating) {
-      setRotation((r) => r === 0 ? Math.PI / 2 : 0);
-    }
-    setWasRotating(mobileActions.rotate);
-  }, [mobileActions.rotate, wasRotating]);
-
-  const spatialHashGrid = useMemo(() => {
-     const grid = new Map<string, any[]>();
-     const len = activeBlocks.length;
-     for (let i = 0; i < len; i++) {
-        const b = activeBlocks[i];
-        const cx = Math.floor(b.position[0] / CHUNK_SIZE);
-        const cy = Math.floor(b.position[1] / CHUNK_SIZE);
-        const cz = Math.floor(b.position[2] / CHUNK_SIZE);
-        const key = cx + '_' + cy + '_' + cz;
-        let chunk = grid.get(key);
-        if (!chunk) {
-           chunk = [];
-           grid.set(key, chunk);
-        }
-        chunk.push(b);
-     }
-     return grid;
-  }, [activeBlocks]);
-  
   const dims = BLOCK_DIMENSIONS[selectedType] || { w: 1, d: 1, shape: 'brick' as const };
   const height = getBlockHeight(dims.shape, dims.isPlate);
 
   const getNearbyBlocks = (point: THREE.Vector3) => {
       const pointX = point.x, pointY = point.y, pointZ = point.z;
-      const px = Math.floor(pointX / CHUNK_SIZE);
-      const py = Math.floor(pointY / CHUNK_SIZE);
-      const pz = Math.floor(pointZ / CHUNK_SIZE);
-      
+      // Use faster traditional loop
       const nearby = [];
-      for (let cx = px - 1; cx <= px + 1; cx++) {
-          for (let cy = py - 1; cy <= py + 1; cy++) {
-              for (let cz = pz - 1; cz <= pz + 1; cz++) {
-                  const chunk = spatialHashGrid.get(cx + '_' + cy + '_' + cz);
-                  if (chunk) {
-                      const len = chunk.length;
-                      for (let i = 0; i < len; i++) {
-                          const b = chunk[i];
-                          if (Math.abs(b.position[0] - pointX) < 8 &&
-                              Math.abs(b.position[1] - pointY) < 8 &&
-                              Math.abs(b.position[2] - pointZ) < 8) {
-                              nearby.push(b);
-                          }
-                      }
-                  }
-              }
+      const len = activeBlocks.length;
+      for (let i = 0; i < len; i++) {
+          const b = activeBlocks[i];
+          if (Math.abs(b.position[0] - pointX) < 8 &&
+              Math.abs(b.position[1] - pointY) < 8 &&
+              Math.abs(b.position[2] - pointZ) < 8) {
+              nearby.push(b);
           }
       }
       return nearby;
@@ -252,65 +190,65 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   useFrame((state) => {
     if (!ref.current) return;
     
-    const input = getInput();
-    
     const velocity = ref.current.linvel();
+    const frontVector = new THREE.Vector3();
+    const sideVector = new THREE.Vector3();
+    const direction = new THREE.Vector3();
     
-    camera.getWorldDirection(_frontVector);
-    _frontVector.y = 0;
-    _frontVector.normalize();
+    camera.getWorldDirection(frontVector);
+    frontVector.y = 0;
+    frontVector.normalize();
     
-    _sideVector.crossVectors(camera.up, _frontVector).normalize();
+    sideVector.crossVectors(camera.up, frontVector).normalize();
 
-    _direction.set(0, 0, 0);
+    const mobileMovement = useStore.getState().mobileMovement;
 
-    const f = input.forward;
-    const b = input.backward;
-    const l = input.left;
-    const r = input.right;
+    direction.set(0, 0, 0);
+    // Combine keyboard and mobile movement
+    const f = (movement.forward ? 1 : 0) + mobileMovement.forward;
+    const b = (movement.backward ? 1 : 0) + mobileMovement.backward;
+    const l = (movement.left ? 1 : 0) + mobileMovement.left;
+    const r = (movement.right ? 1 : 0) + mobileMovement.right;
 
-    if (f > 0) _direction.add(_frontVector.clone().multiplyScalar(f));
-    if (b > 0) _direction.add(_frontVector.clone().multiplyScalar(-b));
-    if (l > 0) _direction.add(_sideVector.clone().multiplyScalar(l));
-    if (r > 0) _direction.add(_sideVector.clone().multiplyScalar(-r));
+    if (f > 0) direction.add(frontVector.clone().multiplyScalar(f));
+    if (b > 0) direction.add(frontVector.clone().multiplyScalar(-b));
+    if (l > 0) direction.add(sideVector.clone().multiplyScalar(l));
+    if (r > 0) direction.add(sideVector.clone().multiplyScalar(-r));
     
     // Clamp magnitude to 1 for direction vector, then multiply by SPEED
-    const mag = _direction.length();
+    const mag = direction.length();
     if (mag > 0) {
-      if (mag > 1) _direction.normalize();
-      _direction.multiplyScalar(isFlying ? SPEED * 1.5 : SPEED);
+      if (mag > 1) direction.normalize();
+      direction.multiplyScalar(isFlying ? SPEED * 1.5 : SPEED);
     }
     
     let vy = velocity.y;
     
-    const isJumping = input.jump;
-    const isShifting = input.shift;
-    
-    if (isJumping && !wasJump.current) {
+    if (movement.jump && !wasJump.current) {
       const now = performance.now();
       if (now - lastJumpPress.current < 500) {
         setIsFlying(!isFlying);
       }
       lastJumpPress.current = now;
     }
-    wasJump.current = isJumping;
+    wasJump.current = movement.jump;
 
     if (isFlying) {
-      if (isJumping) {
+      if (movement.jump) {
         vy = SPEED;
-      } else if (isShifting) {
+      } else if (movement.shift) {
         vy = -SPEED;
       } else {
         vy = 0;
       }
     } else {
-      if (isJumping && Math.abs(velocity.y) < 0.1) {
+      if (movement.jump && Math.abs(velocity.y) < 0.1) {
          vy = JUMP_FORCE;
          playJumpSound();
       }
     }
     
-    ref.current.setLinvel({ x: _direction.x, y: vy, z: _direction.z });
+    ref.current.setLinvel({ x: direction.x, y: vy, z: direction.z });
 
     const pos = ref.current.translation();
     
@@ -329,15 +267,12 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
     if (nowTime - lastGhostUpdate.current < fpsLimit) return;
     lastGhostUpdate.current = nowTime;
 
-    _start.copy(camera.position);
-    _dir.set(0, 0, -1).applyEuler(camera.rotation);
+    const start = camera.position.clone();
+    const dir = new THREE.Vector3(0, 0, -1).applyEuler(camera.rotation);
     
     // Rapier Raycast
-    _rayOrigin.x = _start.x; _rayOrigin.y = _start.y; _rayOrigin.z = _start.z;
-    _rayDir.x = _dir.x; _rayDir.y = _dir.y; _rayDir.z = _dir.z;
-    
-    const ray = new rapier.Ray(_rayOrigin, _rayDir);
-    _threeRay.set(_start, _dir);
+    const ray = new rapier.Ray(start, dir);
+    const threeRay = new THREE.Ray(start, dir);
     const playerCollider = ref.current?.collider(0); 
     
     // castRayAndGetNormal(ray, maxToi, solid, collisionGroups, filterFlags, filterCollider)
@@ -350,47 +285,43 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
         playerCollider
     );
     
-    let numBasePoints = 0;
+    const basePointsToSearch: {point: THREE.Vector3, normal: THREE.Vector3}[] = [];
 
     if (hit) {
-        _threeRay.at(hit.timeOfImpact, _hitPoint);
-        _basePoints[numBasePoints].point.copy(_hitPoint);
-        _basePoints[numBasePoints].normal.copy(hit.normal as any);
-        numBasePoints++;
+        const hitPoint = threeRay.at(hit.timeOfImpact, new THREE.Vector3());
+        basePointsToSearch.push({
+            point: new THREE.Vector3(hitPoint.x, hitPoint.y, hitPoint.z), 
+            normal: new THREE.Vector3().copy(hit.normal as any)
+        });
     }
 
     const currentGhostY = ghostPosRef.current ? ghostPosRef.current[1] : height / 2;
-    _planeNormal.set(0, 1, 0);
-    _plane.set(_planeNormal, -currentGhostY);
-    if (_threeRay.intersectPlane(_plane, _hitPlane)) {
-        if (_hitPlane.distanceTo(_start) < 8) {
-            _basePoints[numBasePoints].point.copy(_hitPlane);
-            _basePoints[numBasePoints].normal.set(0, 1, 0);
-            numBasePoints++;
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -currentGhostY);
+    const hitPlane = new THREE.Vector3();
+    if (threeRay.intersectPlane(plane, hitPlane)) {
+        if (hitPlane.distanceTo(start) < 8) {
+            basePointsToSearch.push({point: hitPlane, normal: new THREE.Vector3(0, 1, 0)});
         }
     }
 
     let targetPos: [number, number, number] | null = null;
     let minScore = Infinity;
 
-    if (hit) {
-       _threeRay.at(hit.timeOfImpact, _searchCenter);
-    } else {
-       _searchCenter.copy(_hitPlane);
-    }
-    const nearbyBlocks = getNearbyBlocks(_searchCenter);
+    const hitPointForSearch = hit ? threeRay.at(hit.timeOfImpact, new THREE.Vector3()) : null;
+    const searchCenter = hitPointForSearch ? new THREE.Vector3(hitPointForSearch.x, hitPointForSearch.y, hitPointForSearch.z) : hitPlane;
+    const nearbyBlocks = getNearbyBlocks(searchCenter);
 
-    _evaluated.clear();
+    const evaluated = new Set<string>();
 
     const evaluatePos = (testP: number[], queryPoint: THREE.Vector3) => {
         if (testP[1] - height / 2 < -0.01) return;
         
         const key = Math.round(testP[0]*10) + '_' + Math.round(testP[1]*10) + '_' + Math.round(testP[2]*10);
-        if (_evaluated.has(key)) return;
-        _evaluated.add(key);
+        if (evaluated.has(key)) return;
+        evaluated.add(key);
 
-        _evalCenter.set(testP[0], testP[1], testP[2]);
-        const distToCenter = _threeRay.distanceSqToPoint(_evalCenter);
+        const center = new THREE.Vector3(testP[0], testP[1], testP[2]);
+        const distToCenter = threeRay.distanceSqToPoint(center);
         
         const isRot = Math.abs(rotation % Math.PI) > 0.1;
         const actualW = isRot ? dims.d : dims.w;
@@ -424,8 +355,7 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
         }
     };
 
-    for (let i = 0; i < numBasePoints; i++) {
-        const base = _basePoints[i];
+    for (const base of basePointsToSearch) {
         const p = getSnappedPosition(base.point, base.normal, dims.w, dims.d, height, rotation);
         evaluatePos(p, base.point);
         
@@ -471,11 +401,6 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
   const ghostPosRef = useRef<[number, number, number] | null>(null);
   const isGhostInvalidRef = useRef(false);
   useEffect(() => {
-    if (ghostPos && !isGhostInvalid) {
-       if (!ghostPosRef.current || ghostPosRef.current[0] !== ghostPos[0] || ghostPosRef.current[1] !== ghostPos[1] || ghostPosRef.current[2] !== ghostPos[2]) {
-           if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
-       }
-    }
     ghostPosRef.current = ghostPos;
     isGhostInvalidRef.current = isGhostInvalid;
   }, [ghostPos, isGhostInvalid]);
@@ -484,7 +409,6 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
     const handlePlace = () => {
          if (ghostPosRef.current && !isGhostInvalidRef.current) {
             playPlopSound();
-            if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([30]);
             const newBlock = {
                 id: generateId(),
                 type: selectedType,
@@ -526,7 +450,6 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
             if (id) {
                 removeBlock(id);
                 playPlopSound();
-                if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate([30]);
             }
          }
     };

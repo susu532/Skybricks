@@ -164,8 +164,6 @@ interface AppState {
   isFlying: boolean;
   mobileMovement: { forward: number; backward: number; left: number; right: number };
   setMobileMovement: (movement: Partial<AppState['mobileMovement']>) => void;
-  mobileActions: { jump: boolean; shift: boolean; rotate: boolean };
-  setMobileAction: (action: keyof AppState['mobileActions'], value: boolean) => void;
   setIsFlying: (isFlying: boolean | ((prev: boolean) => boolean)) => void;
   furnitureUnlocked: boolean;
   hasSeenTutorial: boolean;
@@ -766,10 +764,6 @@ export const useStore = create<AppState>()(
   mobileMovement: { forward: 0, backward: 0, left: 0, right: 0 },
   setMobileMovement: (movement) => set((state) => ({ 
     mobileMovement: { ...state.mobileMovement, ...movement } 
-  })),
-  mobileActions: { jump: false, shift: false, rotate: false },
-  setMobileAction: (action, value) => set((state) => ({
-    mobileActions: { ...state.mobileActions, [action]: value }
   })),
   setIsFlying: (isFlying) => set((state) => ({ isFlying: typeof isFlying === 'function' ? isFlying(state.isFlying) : isFlying })),
   uiHidden: false,
