@@ -67,7 +67,7 @@ export function Joystick() {
     if (touchIdRef.current !== null) return; // Already active
     e.preventDefault();
     const el = e.currentTarget as HTMLElement;
-    el.setPointerCapture(e.pointerId);
+    try { el.setPointerCapture(e.pointerId); } catch(err) {}
     el.setAttribute('data-touch-id', String(e.pointerId));
     touchIdRef.current = e.pointerId;
     setIsActive(true);

@@ -141,11 +141,14 @@ export default function App() {
   return (
     <div className="relative w-screen h-screen bg-slate-50 overflow-hidden font-sans select-none">
       {isMobile && isPortrait && started && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900 text-white p-8 text-center text-xl font-bold flex-col gap-4">
+        <div 
+          className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900 text-white p-8 text-center text-xl font-bold flex-col gap-4 cursor-pointer"
+          onClick={handleStart}
+        >
           <svg className="w-16 h-16 animate-bounce" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            <path d="M3 8v13h18V8H3zm2 11V10h14v9H5z" />
           </svg>
-          Please rotate your device to landscape for the best experience.
+          Tap the screen to rotate and enter fullscreen mode
         </div>
       )}
       <div className="absolute inset-0 touch-none">

@@ -856,17 +856,18 @@ export function UI() {
                   onFocus={(e) => e.target.blur()}
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
+                    try { e.currentTarget.setPointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("jump", true);
                   }}
                   onPointerUp={(e) => {
-                    e.currentTarget.releasePointerCapture(e.pointerId);
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("jump", false);
                   }}
                   onPointerLeave={(e) => {
                     setMobileAction("jump", false);
                   }}
                   onPointerCancel={(e) => {
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("jump", false);
                   }}
                   className="w-10 h-10 sm:w-14 sm:h-12 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md"
@@ -878,17 +879,18 @@ export function UI() {
                   onFocus={(e) => e.target.blur()}
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
+                    try { e.currentTarget.setPointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("shift", true);
                   }}
                   onPointerUp={(e) => {
-                    e.currentTarget.releasePointerCapture(e.pointerId);
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("shift", false);
                   }}
                   onPointerLeave={(e) => {
                     setMobileAction("shift", false);
                   }}
                   onPointerCancel={(e) => {
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("shift", false);
                   }}
                   className="w-10 h-10 sm:w-14 sm:h-12 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md"
@@ -929,17 +931,18 @@ export function UI() {
                   onFocus={(e) => e.target.blur()}
                   onContextMenu={(e) => e.preventDefault()}
                   onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
+                    try { e.currentTarget.setPointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("rotate", true);
                   }}
                   onPointerUp={(e) => {
-                    e.currentTarget.releasePointerCapture(e.pointerId);
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("rotate", false);
                   }}
                   onPointerLeave={(e) => {
                     setMobileAction("rotate", false);
                   }}
                   onPointerCancel={(e) => {
+                    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch(err) {}
                     setMobileAction("rotate", false);
                   }}
                   className="w-10 h-10 sm:w-14 sm:h-12 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md"
