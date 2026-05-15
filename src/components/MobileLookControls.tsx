@@ -31,11 +31,15 @@ export function MobileLookControls() {
     const onPointerDown = (event: PointerEvent) => {
       // Ignore if we're already tracking a pointer
       if (activePointerId.current !== null) return;
+      // Do not capture if hitting an interactive UI element
+      if ((event.target as HTMLElement)?.closest('button, .joystick, [role="button"]')) return;
 
       activePointerId.current = event.pointerId;
       previousTouch.current = { x: event.clientX, y: event.clientY };
-      // Explicitly capture pointer so we track it even if it moves slightly outside canvas
-      domElement.setPointerCapture(event.pointerId);
+      
+      try {
+        domElement.setPointerCapture(event.pointerId);
+      } catch (e) {}
     };
 
     const onPointerMove = (event: PointerEvent) => {
@@ -70,16 +74,17 @@ export function MobileLookControls() {
     };
 
     domElement.addEventListener("pointerdown", onPointerDown);
-    domElement.addEventListener("pointermove", onPointerMove);
-    domElement.addEventListener("pointerup", onPointerUp);
-    domElement.addEventListener("pointercancel", onPointerUp);
+    // Bind move/up to window so we don't lose the touch if it slides off or gets blocked
+    window.addEventListener("pointermove", onPointerMove, { passive: false });
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
     domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 
     return () => {
       domElement.removeEventListener("pointerdown", onPointerDown);
-      domElement.removeEventListener("pointermove", onPointerMove);
-      domElement.removeEventListener("pointerup", onPointerUp);
-      domElement.removeEventListener("pointercancel", onPointerUp);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", onPointerUp);
+      window.removeEventListener("pointercancel", onPointerUp);
       domElement.style.touchAction = "";
     };
   }, [camera, gl.domElement, isMobile]);
