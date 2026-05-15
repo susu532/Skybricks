@@ -827,8 +827,7 @@ export const useStore = create<AppState>()(
       name: 'mansion-builder-storage',
       storage: createJSONStorage(() => crazyGamesStorage),
       partialize: (state) => ({ 
-        blocks: state.blocks, 
-        hasSeenTutorial: state.hasSeenTutorial 
+        blocks: state.blocks
       }),
     }
   )

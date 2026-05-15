@@ -26,42 +26,11 @@ export function TutorialOverlay() {
     selectedType,
   } = useStore();
   const [step, setStep] = useState(0);
-  const [isInitializing, setIsInitializing] = useState(true);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const initialBlockCount = useRef(blocks.length);
   const initialColor = useRef(selectedColor);
   const initialType = useRef(selectedType);
-
-  // Fallback SDK Check in case Zustand rehydrated before SDK was ready
-  useEffect(() => {
-    let checked = false;
-    const checkSDK = async () => {
-      try {
-        const cg = (window as any).CrazyGames;
-        if (cg && cg.SDK && cg.SDK.data) {
-          const val = await cg.SDK.data.getItem("block-builder-storage");
-          if (val) {
-            const parsed = JSON.parse(val);
-            if (parsed && parsed.state && parsed.state.hasSeenTutorial) {
-              setHasSeenTutorial(true);
-            }
-          }
-        }
-      } catch (e) {}
-      if (!checked) {
-        setIsInitializing(false);
-      }
-    };
-    checkSDK();
-    const timer = setTimeout(() => {
-      if (isInitializing) setIsInitializing(false);
-    }, 1000); // 1s fallback
-
-    return () => {
-      checked = true;
-      clearTimeout(timer);
-    };
-  }, [isInitializing, setHasSeenTutorial]);
 
   // Step listeners
   useEffect(() => {
@@ -414,29 +383,44 @@ export function TutorialOverlay() {
               {currentStep.description}
             </p>
 
-            <button
-              onClick={(e) => {
-                if (step === 0) {
-                  handleGameplayStart();
-                  setStep(0.5);
-                  initialBlockCount.current = useStore.getState().blocks.length;
-                  initialColor.current = useStore.getState().selectedColor;
-                  initialType.current = useStore.getState().selectedType;
-                } else {
-                  setHasSeenTutorial(true);
-                  requestLock();
-                }
-              }}
-              className={`flex items-center gap-2 px-8 py-4 ${currentStep.bg} text-white rounded-[1.5rem] font-bold hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-current/20 w-full justify-center group relative overflow-hidden`}
-            >
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10">
-                {step === 0 ? "Start Tutorial" : "Finish Tutorial"}
-              </span>
+            <div className="flex w-full gap-4 flex-col sm:flex-row">
+              <button
+                onClick={(e) => {
+                  if (step === 0) {
+                    handleGameplayStart();
+                    setStep(0.5);
+                    initialBlockCount.current = useStore.getState().blocks.length;
+                    initialColor.current = useStore.getState().selectedColor;
+                    initialType.current = useStore.getState().selectedType;
+                  } else {
+                    setHasSeenTutorial(true);
+                    requestLock();
+                  }
+                }}
+                className={`flex flex-1 items-center gap-2 px-8 py-4 ${currentStep.bg} text-white rounded-[1.5rem] font-bold hover:brightness-110 active:scale-95 transition-all shadow-xl shadow-current/20 w-full justify-center group relative overflow-hidden`}
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <span className="relative z-10">
+                  {step === 0 ? "Start Tutorial" : "Finish Tutorial"}
+                </span>
+                {step === 0 && (
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
+                )}
+              </button>
+              
               {step === 0 && (
-                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />
+                <button
+                  onClick={() => {
+                    handleGameplayStart();
+                    setHasSeenTutorial(true);
+                    requestLock();
+                  }}
+                  className="flex flex-1 items-center gap-2 px-8 py-4 bg-slate-100 text-slate-600 rounded-[1.5rem] font-bold hover:bg-slate-200 active:scale-95 transition-all w-full justify-center"
+                >
+                  Skip Tutorial
+                </button>
               )}
-            </button>
+            </div>
           </div>
         </motion.div>
       ) : (
