@@ -238,6 +238,7 @@ export function UI() {
   const setUiHidden = useStore((state) => state.setUiHidden);
   const isFlying = useStore((state) => state.isFlying);
   const setIsFlying = useStore((state) => state.setIsFlying);
+  const setMobileAction = useStore((state) => state.setMobileAction);
 
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -499,7 +500,7 @@ export function UI() {
                   )}
 
                   {isMobile && (
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => {
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={(e) => {
                             e.preventDefault();
                             try {
                                 const el = document.documentElement as any;
@@ -649,29 +650,29 @@ export function UI() {
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${(!isMobile || uiHidden) ? 'hidden' : ''}`}>
           
           {/* Left Joystick */}
-          <div className="absolute bottom-12 landscape:bottom-8 portrait:bottom-[180px] left-8 landscape:left-16 pointer-events-none" style={{ left: 'max(2rem, env(safe-area-inset-left))' }}>
+          <div className="absolute left-[max(2rem,env(safe-area-inset-left))] pointer-events-none portrait:bottom-[max(180px,calc(180px+env(safe-area-inset-bottom)))] landscape:bottom-[max(2rem,calc(2rem+env(safe-area-inset-bottom)))]">
             <Joystick />
           </div>
 
           {/* Right Actions */}
-          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
+          <div className="absolute right-[max(1rem,env(safe-area-inset-right))] pointer-events-none portrait:bottom-[max(150px,calc(150px+env(safe-area-inset-bottom)))] landscape:bottom-[max(1rem,calc(1rem+env(safe-area-inset-bottom)))]">
               <div className="pointer-events-auto flex items-end gap-1.5 sm:gap-2">
                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
-                        onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setMobileAction('jump', true); }}
+                        onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); setMobileAction('jump', false); }}
+                        onPointerLeave={(e) => { setMobileAction('jump', false); }}
+                        onPointerCancel={(e) => { setMobileAction('jump', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
                         <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setMobileAction('shift', true); }}
+                        onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); setMobileAction('shift', false); }}
+                        onPointerLeave={(e) => { setMobileAction('shift', false); }}
+                        onPointerCancel={(e) => { setMobileAction('shift', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
                         <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
@@ -692,10 +693,10 @@ export function UI() {
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', code: 'KeyR' }))}}
-                        onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
+                        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setMobileAction('rotate', true); }}
+                        onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); setMobileAction('rotate', false); }}
+                        onPointerLeave={(e) => { setMobileAction('rotate', false); }}
+                        onPointerCancel={(e) => { setMobileAction('rotate', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 font-bold" />
                     </button>
@@ -712,7 +713,7 @@ export function UI() {
           </div>
         </div>
 
-        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
+        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             
             {/* Unified Mobile Bottom Bar */}
             {(isMobile && !uiHidden) && (
