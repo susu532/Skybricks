@@ -162,6 +162,10 @@ interface AppState {
   setUiHidden: (hidden: boolean | ((prev: boolean) => boolean)) => void;
   isMobile: boolean;
   isFlying: boolean;
+  mobileMovement: { forward: number; backward: number; left: number; right: number };
+  setMobileMovement: (movement: Partial<AppState['mobileMovement']>) => void;
+  mobileActions: { jump: boolean; shift: boolean; rotate: boolean };
+  setMobileAction: (action: keyof AppState['mobileActions'], value: boolean) => void;
   setIsFlying: (isFlying: boolean | ((prev: boolean) => boolean)) => void;
   furnitureUnlocked: boolean;
   hasSeenTutorial: boolean;
@@ -759,6 +763,14 @@ export const useStore = create<AppState>()(
     (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0 && /Macintosh/.test(navigator.userAgent)) // For iPad Pro
     : false,
   isFlying: false,
+  mobileMovement: { forward: 0, backward: 0, left: 0, right: 0 },
+  setMobileMovement: (movement) => set((state) => ({ 
+    mobileMovement: { ...state.mobileMovement, ...movement } 
+  })),
+  mobileActions: { jump: false, shift: false, rotate: false },
+  setMobileAction: (action, value) => set((state) => ({
+    mobileActions: { ...state.mobileActions, [action]: value }
+  })),
   setIsFlying: (isFlying) => set((state) => ({ isFlying: typeof isFlying === 'function' ? isFlying(state.isFlying) : isFlying })),
   uiHidden: false,
   setUiHidden: (hidden) => set((state) => ({ uiHidden: typeof hidden === 'function' ? hidden(state.uiHidden) : hidden })),

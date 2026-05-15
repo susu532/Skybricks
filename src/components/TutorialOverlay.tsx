@@ -42,7 +42,7 @@ export function TutorialOverlay() {
 
   // Step listeners
   useEffect(() => {
-    if (step === 0 || step === 10) {
+    if (step === 0.5 || step === 0 || step === 10) {
       if (document.pointerLockElement) {
         document.exitPointerLock?.();
       }
@@ -165,7 +165,7 @@ export function TutorialOverlay() {
     { id: 10, title: "Master Builder!", description: "You are ready to create your dreams.", icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500", border: 'border-emerald-500' },
   ];
 
-  const currentStep = stepsInfo[step];
+  const currentStep = stepsInfo[step] || stepsInfo[0];
   const Icon = currentStep.icon;
 
   const requestLock = () => {
@@ -185,13 +185,59 @@ export function TutorialOverlay() {
 
   return (
     <AnimatePresence mode="wait">
-      {(step === 0 || step === 10) ? (
+      {step === 0.5 ? (
+        <motion.div 
+          key="modal-quality"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 p-4 pointer-events-auto"
+        >
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-[400px] w-full p-8 text-center flex flex-col items-center relative overflow-hidden border border-white/50">
+            <div className="absolute top-0 left-0 w-full h-3 bg-fuchsia-500 opacity-90" />
+            <div className="w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6 bg-slate-50 shadow-inner border border-slate-100 text-fuchsia-500 relative overflow-hidden group">
+               <div className="absolute inset-0 bg-fuchsia-500 opacity-10" />
+               <Sparkles className="w-12 h-12 relative z-10" strokeWidth={2.5} />
+            </div>
+            <h2 className="text-3xl font-black tracking-tight text-slate-900 mb-2" style={{ fontFamily: 'Inter, system-ui, sans-serif' }}>
+              Enable Ultra-Quality?
+            </h2>
+            <p className="text-slate-500 font-medium mb-8 text-sm leading-relaxed max-w-[320px]">
+              You can change it later in menu section if you want better fps.
+            </p>
+            <div className="flex w-full gap-4">
+              <button 
+                onClick={() => {
+                  useStore.setState({ performanceMode: true });
+                  setStep(1);
+                  requestLock();
+                  handleGameplayStart();
+                }}
+                className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-[1.5rem] font-bold hover:bg-slate-200 active:scale-95 transition-all shadow-md"
+              >
+                No
+              </button>
+              <button 
+                onClick={() => {
+                  useStore.setState({ performanceMode: false });
+                  setStep(1);
+                  requestLock();
+                  handleGameplayStart();
+                }}
+                className="flex-1 py-4 bg-fuchsia-500 text-white rounded-[1.5rem] font-bold hover:bg-fuchsia-600 active:scale-95 transition-all shadow-xl shadow-fuchsia-500/30"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      ) : (step === 0 || step === 10) ? (
         <motion.div 
           key={`modal-${step}`}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4 pointer-events-auto"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40  p-4 pointer-events-auto"
         >
           <div className="bg-white rounded-[2rem] shadow-2xl max-w-[360px] w-full p-8 text-center flex flex-col items-center relative overflow-hidden border border-white/50">
             <div className={`absolute top-0 left-0 w-full h-3 ${currentStep.bg} opacity-90`} />
@@ -216,12 +262,10 @@ export function TutorialOverlay() {
             <button 
               onClick={(e) => {
                 if (step === 0) {
-                  setStep(1);
+                  setStep(0.5);
                   initialBlockCount.current = useStore.getState().blocks.length;
                   initialColor.current = useStore.getState().selectedColor;
                   initialType.current = useStore.getState().selectedType;
-                  requestLock();
-                  handleGameplayStart();
                 } else {
                   setHasSeenTutorial(true);
                   requestLock();
@@ -234,18 +278,7 @@ export function TutorialOverlay() {
               {step === 0 && <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform relative z-10" />}
             </button>
 
-            {step === 0 && (
-              <button 
-                onClick={() => {
-                  setHasSeenTutorial(true);
-                  requestLock();
-                  handleGameplayStart();
-                }}
-                className="mt-4 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors tracking-wide uppercase"
-              >
-                Skip Tutorial
-              </button>
-            )}
+         
           </div>
         </motion.div>
       ) : (

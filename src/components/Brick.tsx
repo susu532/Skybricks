@@ -59,6 +59,7 @@ function InstancedGroup({ group, performanceMode }: any) {
             meshRef.current!.setMatrixAt(i, tempMatrix);
         });
         meshRef.current.instanceMatrix.needsUpdate = true;
+        meshRef.current.computeBoundingSphere();
     }, [group.blocks]);
 
     return (

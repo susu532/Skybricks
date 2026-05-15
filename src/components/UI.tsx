@@ -3,6 +3,7 @@ import { useStore, BlockType, BLOCK_DIMENSIONS } from '../store';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { playSelectSound } from '../audio';
 import { TutorialOverlay } from './TutorialOverlay';
+import { Joystick } from './Joystick';
 
 const COLORS = [
   { name: 'Ballet Pink', hex: '#FFD1DC' },
@@ -237,6 +238,7 @@ export function UI() {
   const setUiHidden = useStore((state) => state.setUiHidden);
   const isFlying = useStore((state) => state.isFlying);
   const setIsFlying = useStore((state) => state.setIsFlying);
+  const setMobileAction = useStore((state) => state.setMobileAction);
 
   const [hasPointerLock, setHasPointerLock] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -498,7 +500,7 @@ export function UI() {
                   )}
 
                   {isMobile && (
-                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => {
+                    <button tabIndex={-1} onFocus={(e) => e.target.blur()} onClick={(e) => {
                             e.preventDefault();
                             try {
                                 const el = document.documentElement as any;
@@ -647,70 +649,30 @@ export function UI() {
         {/* Mobile Controls Layer */}
         <div className={`absolute inset-0 z-40 pointer-events-none transition-opacity ${(!isMobile || uiHidden) ? 'hidden' : ''}`}>
           
-          {/* Left D-Pad */}
-          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] left-4 landscape:left-12 sm:left-12 pointer-events-none" style={{ left: 'max(1rem, env(safe-area-inset-left))' }}>
-            <div className="flex flex-col items-center gap-1">
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'w', code: 'KeyW' }))}}
-                  onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'w', code: 'KeyW' }))}}
-                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                  <ArrowUp className="w-5 h-5 sm:w-7 sm:h-7" />
-              </button>
-              <div className="flex gap-1">
-                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                    onContextMenu={(e) => e.preventDefault()}
-                    onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', code: 'KeyA' }))}}
-                    onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'a', code: 'KeyA' }))}}
-                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                    <ArrowLeft className="w-5 h-5 sm:w-7 sm:h-7" />
-                </button>
-                <div className="w-12 h-10 sm:w-16 sm:h-14 bg-black/10 rounded-xl border border-white/10" />
-                <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                    onContextMenu={(e) => e.preventDefault()}
-                    onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd', code: 'KeyD' }))}}
-                    onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'd', code: 'KeyD' }))}}
-                    className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                    <ArrowRight className="w-5 h-5 sm:w-7 sm:h-7" />
-                </button>
-              </div>
-              <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
-                  onContextMenu={(e) => e.preventDefault()}
-                  onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 's', code: 'KeyS' }))}}
-                  onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 's', code: 'KeyS' }))}}
-                  className="pointer-events-auto w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-pink-100 shadow-md touch-none active:scale-95 transition-transform text-slate-700 backdrop-blur-md border border-white/40">
-                  <ArrowDown className="w-5 h-5 sm:w-7 sm:h-7" />
-              </button>
-            </div>
+          {/* Left Joystick */}
+          <div className="absolute left-[max(2rem,env(safe-area-inset-left))] pointer-events-none portrait:bottom-[max(180px,calc(180px+env(safe-area-inset-bottom)))] landscape:bottom-[max(2rem,calc(2rem+env(safe-area-inset-bottom)))]">
+            <Joystick />
           </div>
 
           {/* Right Actions */}
-          <div className="absolute bottom-6 landscape:bottom-4 portrait:bottom-[150px] right-4 landscape:right-12 sm:right-12 pointer-events-none" style={{ right: 'max(1rem, env(safe-area-inset-right))' }}>
+          <div className="absolute right-[max(1rem,env(safe-area-inset-right))] pointer-events-none portrait:bottom-[max(150px,calc(150px+env(safe-area-inset-bottom)))] landscape:bottom-[max(1rem,calc(1rem+env(safe-area-inset-bottom)))]">
               <div className="pointer-events-auto flex items-end gap-1.5 sm:gap-2">
                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space' }))}}
-                        onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space' }))}}
+                        onPointerDown={(e) => { e.preventDefault(); setMobileAction('jump', true); }}
+                        onPointerUp={(e) => { e.preventDefault(); setMobileAction('jump', false); }}
+                        onPointerOut={(e) => { setMobileAction('jump', false); }}
+                        onPointerCancel={(e) => { setMobileAction('jump', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
                         <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Shift', code: 'ShiftLeft' }))}}
+                        onPointerDown={(e) => { e.preventDefault(); setMobileAction('shift', true); }}
+                        onPointerUp={(e) => { e.preventDefault(); setMobileAction('shift', false); }}
+                        onPointerOut={(e) => { setMobileAction('shift', false); }}
+                        onPointerCancel={(e) => { setMobileAction('shift', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
                         <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
@@ -725,16 +687,16 @@ export function UI() {
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-rose-500/90 rounded-xl flex items-center justify-center active:bg-rose-600 shadow-md text-white touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keydown', { key: 'r', code: 'KeyR' }))}}
-                        onPointerUp={(e) => { e.preventDefault(); window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                        onPointerOut={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
-                        onPointerCancel={(e) => { window.dispatchEvent(new KeyboardEvent('keyup', { key: 'r', code: 'KeyR' }))}}
+                        onPointerDown={(e) => { e.preventDefault(); setMobileAction('rotate', true); }}
+                        onPointerUp={(e) => { e.preventDefault(); setMobileAction('rotate', false); }}
+                        onPointerOut={(e) => { setMobileAction('rotate', false); }}
+                        onPointerCancel={(e) => { setMobileAction('rotate', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 font-bold" />
                     </button>
@@ -742,7 +704,7 @@ export function UI() {
                  <div className="flex flex-col justify-end">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
                         className="w-16 h-16 sm:w-24 sm:h-24 bg-pink-500 rounded-2xl flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 border-2 border-white/30 backdrop-blur-sm mb-0.5">
                         <Plus className="w-8 h-8 sm:w-12 sm:h-12" strokeWidth={3} />
                     </button>
@@ -751,16 +713,16 @@ export function UI() {
           </div>
         </div>
 
-        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`}>
+        <div className={`absolute pointer-events-none z-50 portrait:bottom-2 landscape:bottom-2 sm:bottom-6 inset-x-0 w-full flex flex-col items-center portrait:justify-end landscape:justify-end px-2 sm:px-6 transition-all duration-300 mx-auto ${hasPointerLock && !isMobile ? 'opacity-80 scale-95' : ''}`} style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
             
             {/* Unified Mobile Bottom Bar */}
             {(isMobile && !uiHidden) && (
               <div className="w-full portrait:max-w-md landscape:w-auto landscape:max-w-[240px] pointer-events-auto mx-auto flex flex-col items-center bg-white/70 backdrop-blur-md rounded-[1.25rem] landscape:rounded-xl shadow-lg border border-white/50 p-1.5 landscape:p-0.5 gap-1.5 landscape:gap-0.5">
                 
                 {/* Tab Switcher */}
-                <div className="flex w-full bg-slate-200/50 rounded-xl landscape:rounded-lg p-0.5 relative mb-0.5 landscape:mb-0">
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setMobileTab('bricks'); }} onClick={() => setMobileTab('bricks')} className={`flex-1 py-1.5 landscape:py-0.5 rounded-lg landscape:rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
-                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setMobileTab('colors'); }} onClick={() => setMobileTab('colors')} className={`flex-1 py-1.5 landscape:py-0.5 rounded-lg landscape:rounded-md text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
+                <div className="flex w-full bg-slate-200/50 rounded-2xl landscape:rounded-lg p-1.5 portrait:mb-1 relative mb-0.5 landscape:mb-0 shadow-inner">
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setMobileTab('bricks'); }} onClick={() => setMobileTab('bricks')} className={`flex-1 py-3 landscape:py-1.5 rounded-xl landscape:rounded-md text-sm landscape:text-xs font-black uppercase tracking-wider transition-all z-10 ${mobileTab === 'bricks' ? 'bg-white text-pink-500 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>Bricks</button>
+                  <button tabIndex={-1} onFocus={(e) => e.target.blur()} onPointerDown={(e) => { e.preventDefault(); setMobileTab('colors'); }} onClick={() => setMobileTab('colors')} className={`flex-1 py-3 landscape:py-1.5 rounded-xl landscape:rounded-md text-sm landscape:text-xs font-black uppercase tracking-wider transition-all z-10 ${mobileTab === 'colors' ? 'bg-white text-pink-500 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}>Colors</button>
                 </div>
 
                 {mobileTab === 'bricks' && (

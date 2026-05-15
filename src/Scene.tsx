@@ -79,12 +79,12 @@ export function Scene() {
       )}
       <directionalLight 
         position={[20, 30, 20]} 
-        intensity={performanceMode ? 2.5 : 0.8} 
+        intensity={performanceMode ? 4.0 : 0.8} 
         color="#ffffff"
       >
         <orthographicCamera attach="shadow-camera" args={[-100, 100, 100, -100]} />
       </directionalLight>
-      <ambientLight intensity={performanceMode ? 2.5 : 0.4} color="#ffffff" />
+      <ambientLight intensity={performanceMode ? 4.0 : 0.4} color="#ffffff" />
       
       {/* Preppy Sky Background */}
       <color attach="background" args={['#bae6fd']} />

@@ -110,8 +110,8 @@ export default function App() {
       <div className="absolute inset-0 touch-none">
         <Canvas 
           camera={{ position: [0, 8, 15], fov: 60 }}
-          dpr={performanceMode ? (isMobile ? 0.75 : 1) : Math.min(2, window.devicePixelRatio)}
-          gl={{ antialias: !performanceMode, powerPreference: "high-performance" }}
+          dpr={performanceMode ? Math.min(1, window.devicePixelRatio) : Math.min(2, window.devicePixelRatio)}
+          gl={{ antialias: !performanceMode, powerPreference: "high-performance", alpha: false }}
         >
           <Scene />
         </Canvas>

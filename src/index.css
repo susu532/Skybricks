@@ -4,6 +4,7 @@
   html, body, #root {
     @apply h-full w-full overflow-hidden;
     touch-action: none;
+    -webkit-tap-highlight-color: transparent;
   }
   
   button {
