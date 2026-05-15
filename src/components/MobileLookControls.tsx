@@ -1,109 +1,100 @@
-import { useThree } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
-import * as THREE from 'three';
+import { useThree, useFrame } from "@react-three/fiber";
+import { useEffect, useRef } from "react";
+import * as THREE from "three";
+import { useStore } from "../store";
 
 export function MobileLookControls() {
   const { camera, gl } = useThree();
-  const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'));
+  const isMobile = useStore((state) => state.isMobile);
   const PI_2 = Math.PI / 2;
 
+  const targetRotationRef = useRef({ x: 0, y: 0 }); // Smooth rotation target
+  const euler = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
+
+  // Track pointer state
+  const activePointerId = useRef<number | null>(null);
+  const previousTouch = useRef<{ x: number; y: number } | null>(null);
+
   useEffect(() => {
-    // initialize euler from camera
     euler.current.copy(camera.rotation);
-    euler.current.order = 'YXZ';
+    euler.current.order = "YXZ";
+    targetRotationRef.current.x = euler.current.x;
+    targetRotationRef.current.y = euler.current.y;
+  }, [camera]);
 
-    let lastTouchX = 0;
-    let lastTouchY = 0;
-    let isDragging = false;
-    let activeTouchId: number | null = null;
-
-    // Use passive: false so we can preventDefault
-    const onTouchStart = (event: TouchEvent) => {
-      // Don't start dragging if touching UI buttons or bottom hotbars
-      const target = event.target as HTMLElement;
-      if (
-          target.tagName === 'BUTTON' || 
-          target.closest('button') ||
-          target.closest('.pointer-events-auto')
-      ) {
-          return;
-      }
-
-      // Find the first touch that is not already tracked
-      for (let i = 0; i < event.changedTouches.length; i++) {
-        const touch = event.changedTouches[i];
-        if (!isDragging) {
-            isDragging = true;
-            activeTouchId = touch.identifier;
-            lastTouchX = touch.pageX;
-            lastTouchY = touch.pageY;
-            break;
-        }
-      }
-    };
-
-    const onTouchMove = (event: TouchEvent) => {
-      if (!isDragging || activeTouchId === null) return;
-      
-      let trackedTouch: Touch | undefined;
-      for (let i = 0; i < event.changedTouches.length; i++) {
-        if (event.changedTouches[i].identifier === activeTouchId) {
-            trackedTouch = event.changedTouches[i];
-            break;
-        }
-      }
-
-      if (!trackedTouch) return;
-
-      // Prevent pull-to-refresh and other default touch actions
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      
-      const touchX = trackedTouch.pageX;
-      const touchY = trackedTouch.pageY;
-
-      const movementX = touchX - lastTouchX;
-      const movementY = touchY - lastTouchY;
-
-      lastTouchX = touchX;
-      lastTouchY = touchY;
-
-      const movementSpeed = 0.003;
-
-      euler.current.y -= movementX * movementSpeed;
-      euler.current.x -= movementY * movementSpeed;
-
-      euler.current.x = Math.max(-PI_2, Math.min(PI_2, euler.current.x));
-
-      camera.quaternion.setFromEuler(euler.current);
-    };
-
-    const onTouchEnd = (event: TouchEvent) => {
-      if (!isDragging || activeTouchId === null) return;
-
-      for (let i = 0; i < event.changedTouches.length; i++) {
-        if (event.changedTouches[i].identifier === activeTouchId) {
-            isDragging = false;
-            activeTouchId = null;
-            break;
-        }
-      }
-    };
+  useEffect(() => {
+    if (!isMobile) return;
 
     const domElement = gl.domElement;
-    domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-    domElement.addEventListener('touchmove', onTouchMove, { passive: false });
-    domElement.addEventListener('touchend', onTouchEnd);
-    domElement.addEventListener('touchcancel', onTouchEnd);
+    domElement.style.touchAction = "none"; // Essential for mobile pointer events
+
+    const onPointerDown = (event: PointerEvent) => {
+      // Ignore if we're already tracking a pointer
+      if (activePointerId.current !== null) return;
+
+      activePointerId.current = event.pointerId;
+      previousTouch.current = { x: event.clientX, y: event.clientY };
+      // Explicitly capture pointer so we track it even if it moves slightly outside canvas
+      domElement.setPointerCapture(event.pointerId);
+    };
+
+    const onPointerMove = (event: PointerEvent) => {
+      if (activePointerId.current !== event.pointerId || !previousTouch.current)
+        return;
+
+      const deltaX = event.clientX - previousTouch.current.x;
+      const deltaY = event.clientY - previousTouch.current.y;
+
+      const movementSpeed = 0.005;
+
+      targetRotationRef.current.y -= deltaX * movementSpeed;
+      targetRotationRef.current.x -= deltaY * movementSpeed;
+
+      // Clamp up/down looking
+      targetRotationRef.current.x = Math.max(
+        -PI_2 + 0.1,
+        Math.min(PI_2 - 0.1, targetRotationRef.current.x),
+      );
+
+      previousTouch.current = { x: event.clientX, y: event.clientY };
+    };
+
+    const onPointerUp = (event: PointerEvent) => {
+      if (activePointerId.current === event.pointerId) {
+        activePointerId.current = null;
+        previousTouch.current = null;
+        try {
+          domElement.releasePointerCapture(event.pointerId);
+        } catch (e) {}
+      }
+    };
+
+    domElement.addEventListener("pointerdown", onPointerDown);
+    domElement.addEventListener("pointermove", onPointerMove);
+    domElement.addEventListener("pointerup", onPointerUp);
+    domElement.addEventListener("pointercancel", onPointerUp);
+    domElement.addEventListener("contextmenu", (e) => e.preventDefault());
 
     return () => {
-      domElement.removeEventListener('touchstart', onTouchStart);
-      domElement.removeEventListener('touchmove', onTouchMove);
-      domElement.removeEventListener('touchend', onTouchEnd);
-      domElement.removeEventListener('touchcancel', onTouchEnd);
+      domElement.removeEventListener("pointerdown", onPointerDown);
+      domElement.removeEventListener("pointermove", onPointerMove);
+      domElement.removeEventListener("pointerup", onPointerUp);
+      domElement.removeEventListener("pointercancel", onPointerUp);
+      domElement.style.touchAction = "";
     };
-  }, [camera, gl.domElement]);
+  }, [camera, gl.domElement, isMobile]);
+
+  useFrame((_, delta) => {
+    if (!isMobile) return;
+
+    const smoothSpeed = 15;
+    euler.current.y +=
+      (targetRotationRef.current.y - euler.current.y) * smoothSpeed * delta;
+    euler.current.x +=
+      (targetRotationRef.current.x - euler.current.x) * smoothSpeed * delta;
+
+    camera.quaternion.setFromEuler(euler.current);
+  });
 
   return null;
 }
