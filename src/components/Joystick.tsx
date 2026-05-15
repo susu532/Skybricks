@@ -66,7 +66,9 @@ export function Joystick() {
   const handlePointerDown = (e: React.PointerEvent) => {
     if (touchIdRef.current !== null) return; // Already active
     e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
+    const el = e.currentTarget as HTMLElement;
+    el.setPointerCapture(e.pointerId);
+    el.setAttribute('data-touch-id', String(e.pointerId));
     touchIdRef.current = e.pointerId;
     setIsActive(true);
     updatePosition(e.clientX, e.clientY);
@@ -81,9 +83,13 @@ export function Joystick() {
   const handlePointerUp = useCallback((e: PointerEvent) => {
     if (touchIdRef.current !== e.pointerId) return;
     e.preventDefault();
-    if (containerRef.current) {
-        try { containerRef.current.releasePointerCapture(e.pointerId); } catch(err) {}
-    }
+    try {
+      const el = document.querySelector(`[data-touch-id="${e.pointerId}"]`) as HTMLElement;
+      if (el) {
+         el.releasePointerCapture(e.pointerId);
+         el.removeAttribute('data-touch-id');
+      }
+    } catch(err) {}
     resetTarget();
   }, [resetTarget]);
 
@@ -105,7 +111,7 @@ export function Joystick() {
   }, [resetTarget]);
 
   return (
-    <div className="relative pointer-events-auto">
+    <div className="relative pointer-events-auto joystick">
       {/* Large invisible hit area to prevent missing the joystick */}
       <div 
         className="absolute bottom-[-20px] left-[-20px] w-48 h-48 sm:w-56 sm:h-56 z-0"
