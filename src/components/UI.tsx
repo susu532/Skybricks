@@ -660,18 +660,18 @@ export function UI() {
                  <div className="flex flex-col gap-1.5 sm:gap-2">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); setMobileAction('jump', true); }}
-                        onPointerUp={(e) => { e.preventDefault(); setMobileAction('jump', false); }}
-                        onPointerOut={(e) => { setMobileAction('jump', false); }}
+                        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setMobileAction('jump', true); }}
+                        onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); setMobileAction('jump', false); }}
+                        onPointerLeave={(e) => { setMobileAction('jump', false); }}
                         onPointerCancel={(e) => { setMobileAction('jump', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
                         <ArrowUp className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); setMobileAction('shift', true); }}
-                        onPointerUp={(e) => { e.preventDefault(); setMobileAction('shift', false); }}
-                        onPointerOut={(e) => { setMobileAction('shift', false); }}
+                        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setMobileAction('shift', true); }}
+                        onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); setMobileAction('shift', false); }}
+                        onPointerLeave={(e) => { setMobileAction('shift', false); }}
                         onPointerCancel={(e) => { setMobileAction('shift', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/80 rounded-xl flex items-center justify-center active:bg-slate-100 border border-white/40 shadow-md touch-none text-slate-700 active:scale-95 backdrop-blur-md">
                         <ArrowDown className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -687,15 +687,15 @@ export function UI() {
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-delete')) }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-rose-500/90 rounded-xl flex items-center justify-center active:bg-rose-600 shadow-md text-white touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <Trash2 className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onPointerDown={(e) => { e.preventDefault(); setMobileAction('rotate', true); }}
-                        onPointerUp={(e) => { e.preventDefault(); setMobileAction('rotate', false); }}
-                        onPointerOut={(e) => { setMobileAction('rotate', false); }}
+                        onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setMobileAction('rotate', true); }}
+                        onPointerUp={(e) => { e.currentTarget.releasePointerCapture(e.pointerId); setMobileAction('rotate', false); }}
+                        onPointerLeave={(e) => { setMobileAction('rotate', false); }}
                         onPointerCancel={(e) => { setMobileAction('rotate', false); }}
                         className="w-12 h-10 sm:w-16 sm:h-14 bg-white/95 rounded-xl flex items-center justify-center active:bg-slate-100 shadow-md text-slate-700 touch-none transition-transform active:scale-95 border border-white/40 backdrop-blur-md">
                         <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 font-bold" />
@@ -704,7 +704,7 @@ export function UI() {
                  <div className="flex flex-col justify-end">
                     <button tabIndex={-1} onFocus={(e) => e.target.blur()} 
                         onContextMenu={(e) => e.preventDefault()}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
+                        onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); window.dispatchEvent(new CustomEvent('mobile-place')) }}
                         className="w-16 h-16 sm:w-24 sm:h-24 bg-pink-500 rounded-2xl flex items-center justify-center active:bg-pink-600 shadow-[0_4px_20px_rgba(236,72,153,0.6)] text-white touch-none transition-transform active:scale-95 border-2 border-white/30 backdrop-blur-sm mb-0.5">
                         <Plus className="w-8 h-8 sm:w-12 sm:h-12" strokeWidth={3} />
                     </button>
