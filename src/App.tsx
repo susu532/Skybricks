@@ -23,6 +23,7 @@ export default function App() {
   }, []);
   const [started, setStarted] = useState(false);
   const { performanceMode, isMobile } = useStore();
+  const [isPortrait, setIsPortrait] = useState(false);
 
   useEffect(() => {
     // Wait for the SDK to load and register the audio listener
@@ -78,6 +79,7 @@ export default function App() {
           navigator.maxTouchPoints > 0 &&
           /Macintosh/.test(navigator.userAgent));
       useStore.getState().setIsMobile(isWindowMobile);
+      setIsPortrait(window.innerHeight > window.innerWidth);
     };
 
     window.addEventListener("resize", handleResize);
@@ -98,57 +100,22 @@ export default function App() {
       const el = document.documentElement as any;
       if (isMobile) {
         if (el.requestFullscreen) {
-          await el.requestFullscreen();
+          await el.requestFullscreen().catch(() => {});
         } else if (el.webkitRequestFullscreen) {
-          await el.webkitRequestFullscreen();
+          await el.webkitRequestFullscreen().catch(() => {});
         } else if (el.msRequestFullscreen) {
-          await el.msRequestFullscreen();
+          await el.msRequestFullscreen().catch(() => {});
         }
 
         const navScreen = screen as any;
         if (navScreen.orientation && navScreen.orientation.lock) {
-          await navScreen.orientation.lock("landscape");
+          await navScreen.orientation.lock("landscape").catch(() => {});
         }
       }
     } catch (err) {
       console.warn("Could not request fullscreen or lock orientation:", err);
     }
   };
-
-  useEffect(() => {
-    const handleOrientationRequest = async () => {
-      const isMobile = useStore.getState().isMobile;
-      const isPortrait = window.innerHeight > window.innerWidth;
-
-      if (isMobile && started && isPortrait) {
-        try {
-          const el = document.documentElement as any;
-          if (el.requestFullscreen) {
-            await el.requestFullscreen();
-          } else if (el.webkitRequestFullscreen) {
-            await el.webkitRequestFullscreen();
-          } else if (el.msRequestFullscreen) {
-            await el.msRequestFullscreen();
-          }
-
-          const navScreen = screen as any;
-          if (navScreen.orientation && navScreen.orientation.lock) {
-            await navScreen.orientation.lock("landscape");
-          }
-        } catch (err) {
-          console.warn("Manual orientation/fullscreen request failed:", err);
-        }
-      }
-    };
-
-    window.addEventListener("touchstart", handleOrientationRequest);
-    window.addEventListener("mousedown", handleOrientationRequest);
-
-    return () => {
-      window.removeEventListener("touchstart", handleOrientationRequest);
-      window.removeEventListener("mousedown", handleOrientationRequest);
-    };
-  }, [started]);
 
   if (!started) {
     return (
@@ -173,6 +140,14 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen bg-slate-50 overflow-hidden font-sans select-none">
+      {isMobile && isPortrait && started && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900 text-white p-8 text-center text-xl font-bold flex-col gap-4">
+          <svg className="w-16 h-16 animate-bounce" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+            <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+          Please rotate your device to landscape for the best experience.
+        </div>
+      )}
       <div className="absolute inset-0 touch-none">
         <Canvas
           camera={{ position: [0, 8, 15], fov: 60 }}
