@@ -93,10 +93,11 @@ export function MobileLookControls() {
     if (!isMobile) return;
 
     const smoothSpeed = 15;
+    const lerpFactor = 1 - Math.exp(-smoothSpeed * delta);
     euler.current.y +=
-      (targetRotationRef.current.y - euler.current.y) * smoothSpeed * delta;
+      (targetRotationRef.current.y - euler.current.y) * lerpFactor;
     euler.current.x +=
-      (targetRotationRef.current.x - euler.current.x) * smoothSpeed * delta;
+      (targetRotationRef.current.x - euler.current.x) * lerpFactor;
 
     camera.quaternion.setFromEuler(euler.current);
   });

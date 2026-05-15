@@ -508,7 +508,7 @@ export function Player({ activeBlocks }: { activeBlocks: any[] }) {
       if (visualGhostPos.current.distanceTo(target) > 5) {
         visualGhostPos.current.copy(target);
       } else {
-        visualGhostPos.current.lerp(target, 0.4 * (60 * delta));
+        visualGhostPos.current.lerp(target, 1 - Math.exp(-24 * delta));
       }
 
       ghostRef.current.position.copy(visualGhostPos.current);
